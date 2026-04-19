@@ -27,8 +27,11 @@ argument-hint: [optional path to brainstorm.md]
 - [ ] 形式（单篇 or 系列）
 - [ ] 如果是系列：系列名、篇数、逻辑线、每篇初步主题
 - [ ] 关键概念和需要核查的事实
+- [ ] 如果涉及代码分析：代码库的本地路径（不能只有 GitHub URL）
 
 **如果有缺失**，用 `AskUserQuestion` 补齐——不要自己脑补。
+
+**特别地**，如果 brainstorm.md 显示主题涉及代码分析但只有 GitHub URL、没有本地路径：**停下来要求用户 clone 到本地**。理由同 brainstorm Skill（本地读文件比 WebFetch 抓 GitHub 页面高效得多）。拿到本地路径后再继续。
 
 ### 第 3 步：为每篇文章写详细规划
 
@@ -80,6 +83,13 @@ argument-hint: [optional path to brainstorm.md]
 - **主题**：...
 - **目标读者**：...
 - **切入角度**：...
+
+## 代码库位置（如果主题涉及代码分析）
+
+- **GitHub URL**：...
+- **本地路径**：...（写作阶段直接从这里读代码，不要用 WebFetch 去抓 GitHub）
+
+如果主题不涉及代码分析，删除这一节。
 
 ## 写作约定
 
