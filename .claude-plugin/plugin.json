@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin.json",
   "name": "composir",
   "description": "科普文写作工作流插件：从头脑风暴到定稿的全流程支持",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "AgenticFish"
   },
