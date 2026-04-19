@@ -12,7 +12,7 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 /plugin install composir@agenticfish
 ```
 
-## 当前功能（批次 1 + 批次 2）
+## 当前功能（三个批次完整）
 
 ### 批次 1：规划阶段
 
@@ -32,7 +32,7 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 #### `/review-cycle [article-path]`
 
-对写好的草稿执行完整核查循环：fact-checker 和 academic-reviewer 两个 agent 并行审查，自动应用修订，再次核查——最多 5 轮。超过 5 轮未通过会问你怎么办。每轮的报告都保存下来（`review-fact-*.md`、`review-academic-*.md`）。
+对写好的草稿执行完整核查循环：fact-checker 和 academic-reviewer 两个 agent 并行审查，自动应用修订，再次核查——最多 5 轮。超过 5 轮未通过会问你怎么办。每轮的报告都保存下来。
 
 #### Agent：`fact-checker`
 
@@ -42,25 +42,37 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 学术/概念审查员。检查对概念和原理的解释是否符合学术共识，类比是否误导，有无过度简化到错的地步。不管事实细节。
 
+### 批次 3：写作辅助工具
+
+#### `/research [query]`
+
+写作时的精确术语查询。结构化 WebSearch + WebFetch，过滤权威源，返回简洁摘要附上 URL。比直接 WebSearch 可靠，适合写作中遇到不确定的点。
+
+#### `/check-format [article-path]`
+
+机械的格式合规检查——字符数（摘要 100-120、英文 Title < 100、Subtitle < 140、SEO Description < 150）、Tags 数量、系列前缀、系列声明等。用 Python 精确计数，不目测。
+
+#### `/translate-to-english [Chinese-article-path]`
+
+中译英。不是逐字翻译——保持结构、类比、术语，用自然英语表达。自动生成 Title/Subtitle/SEO Description/Tags/Summary，完成后自动调 `check-format` 验证，不通过自动重试最多 3 次。**不自动触发**，仅在用户明确说"写英文"时运行。
+
 ## 工作流
 
 ```
-/brainstorm                   ← 主题、读者、形式、结构
+/brainstorm                    ← 主题、读者、形式、结构
    ↓ brainstorm.md
-/plan                         ← 结构化 plan
+/plan                          ← 结构化 plan
    ↓ plan.md（用户审核）
-[写作：批次 3 的 write-article Skill，或者手动写]
+[写作，中途可随时 /research <term> 查资料]
    ↓ 中文草稿
-/review-cycle article.md      ← 自动 fact + academic 核查 + 修订循环
+/review-cycle article.md       ← 自动 fact + academic 核查 + 修订循环
    ↓ 通过后 plan.md 标为"定稿"
-用户说"写英文" → 英文版（批次 3 的 translate-to-english Skill）
+/check-format article.md       ← 发布前机械格式检查
+   ↓ 用户说"写英文"
+/translate-to-english article.md
+   ↓ 英文草稿（含自动 check-format）
+/review-cycle english.md       ← 可选：英文也跑一遍核查
 ```
-
-## 计划中的功能（批次 3）
-
-- `research`：精确术语/事实查询（结构化使用 WebSearch/WebFetch）
-- `check-format`：字符数和格式规范验证
-- `translate-to-english`：中译英（带格式验证）
 
 ## License
 
