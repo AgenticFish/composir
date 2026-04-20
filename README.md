@@ -52,6 +52,14 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 学术/概念审查员。检查对概念和原理的解释是否符合学术共识，类比是否误导，有无过度简化到错的地步。不管事实细节。
 
+#### `/fact-check [article-path]`（0.5.1+）
+
+对单篇文章**只跑 fact-checker**，不走 full review-cycle。文章没有 `.composir/<slug>-plan.md` 时自动 bootstrap——读文章、推断权威源白名单候选、你确认后写最小 plan.md。迭代上限 5 轮，规则同 review-cycle。适合：只想验事实不要学术审、快速核刚改的段落、对没走过 brainstorm/plan 的老文章做事后体检。
+
+#### `/academic-check [article-path]`（0.5.1+）
+
+对单篇文章**只跑 academic-reviewer**，不走 full review-cycle。同样支持 plan.md 缺失时 bootstrap。适合：审概念框架和类比是否误导、担心过度简化到"读者会被引到错误方向"。迭代规则和 fact-check 对称。
+
 ### 批次 3：写作辅助工具
 
 #### `/research [query]`
