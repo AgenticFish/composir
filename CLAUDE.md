@@ -79,6 +79,7 @@ In any Claude Code session:
 - **0.1.1** — Code-analysis topics require local clone before brainstorming (prevents WebFetch-against-GitHub inefficiency)
 - **0.2.0** — Batch 2: review-cycle with fact-checker + academic-reviewer agents
 - **0.3.0** — Batch 3: research, check-format, translate-to-english
+- **0.4.0** — `.composir/` folder for process artifacts + slug-prefixed filenames + review-cycle hardening (per-topic source whitelist, Critical=0 pass condition, snapshots + incremental review, prior-round context, stricter over-simplification bar, local-repo-first for code analysis)
 
 ## Collections referenced in the plugin
 
