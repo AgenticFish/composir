@@ -30,7 +30,10 @@ model: inherit
 ## 工作流程
 
 1. **读取文章**：用 Read 工具读取用户指定的文章文件。
-2. **（可选）读取 plan.md**：review-cycle skill 在触发本 agent 时通常会直接给出 plan.md 的绝对路径（形如 `<系列目录>/.composir/<slug>-plan.md`）。读它的"核查要点"部分——作者可能已经列出了他希望你特别关注的点。如果没收到路径，可以在文章所在目录的 `.composir/` 下 glob `*-plan.md` 自己找。
+2. **读取 plan.md**（**必须**）：review-cycle skill 在触发本 agent 时会直接给出 plan.md 的绝对路径（形如 `<系列目录>/.composir/<slug>-plan.md`）。如果没收到路径，在文章所在目录的 `.composir/` 下 glob `*-plan.md` 自己找。读它的：
+   - **"权威源"节**——这是你核查时的白名单，决定哪些证据可以升 Critical（没这份就用通用黑名单规则兜底）
+   - **"核查要点"部分**——作者希望你特别关注的点
+   - **"代码库位置"节**——涉及代码时从这里读本地文件
 3. **抽取事实性断言**：逐段扫描，列出所有可核查的具体断言。
 4. **核查每条**：
    - 用 WebSearch 搜索最新信息（注意搜索时加入准确时间限定词，避免过期信息）
@@ -87,7 +90,13 @@ model: inherit
 ## 工作准则
 
 - **严谨但不吹毛求疵**：不要把"可以更精确"当成 Critical。Critical 是真的错了。
-- **用一手源**：官方文档 > 维基百科 > 二手博客。
+- **认权威源**（**硬规则**）：
+  - 读 plan.md 的"权威源"节——那是作者和领域确认过的白名单。白名单内的 URL 可以支撑 Critical。
+  - **通用黑名单规则**（类型级，不列具体域名；任何主题都适用）：
+    - 单一个人博客（Medium、Substack、Dev.to、个人博客站、Ghost/Hugo 站等）、SNS 帖子（X/Twitter、Threads、Reddit、LinkedIn posts）、知乎/掘金/小红书/B 站专栏、论坛帖（Stack Overflow 可接受答案除外）→ **最多支持 Warning，不能独立支撑 Critical**
+    - 未署名内容、SEO 内容农场 → 不作任何级别的证据
+    - 二手转述的第三方文章 → 追溯到一手源引一手源；追不到就不能作 Critical 证据
+- **Critical 的硬门槛**：每条 Critical **必须附一手源 URL**（白名单内的链接，或用户已 clone 的本地代码路径 + 行号）。没有一手源支撑 → 降级为 Warning 或 Minor，不管你多确信。
 - **标注不确定**：找不到证据就老实说"未找到直接证据"，别瞎编。
 - **不改写文章**：你只写报告，不编辑文章。修复是 review-cycle Skill 或下游的工作。
 - **不超出职责**：遇到风格问题、概念框架问题，不要报——告诉 review-cycle 让 academic-reviewer 处理。

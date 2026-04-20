@@ -32,9 +32,10 @@ argument-hint: [optional path to brainstorm.md]
 - [ ] 形式（单篇 or 系列）
 - [ ] 如果是系列：系列名、篇数、逻辑线、每篇初步主题
 - [ ] 关键概念和需要核查的事实
+- [ ] **权威源**列表（brainstorm 第 7 步产出的）
 - [ ] 如果涉及代码分析：代码库的本地路径（不能只有 GitHub URL）
 
-**如果有缺失**，用 `AskUserQuestion` 补齐——不要自己脑补。
+**如果有缺失**，用 `AskUserQuestion` 补齐——不要自己脑补。**权威源如果 brainstorm.md 里没写，一定要补一份**（核查阶段需要），可以按主题推断一份初稿让用户确认。
 
 **特别地**，如果 brainstorm.md 显示主题涉及代码分析但只有 GitHub URL、没有本地路径：**停下来要求用户 clone 到本地**。理由同 brainstorm Skill（本地读文件比 WebFetch 抓 GitHub 页面高效得多）。拿到本地路径后再继续。
 
@@ -103,6 +104,19 @@ argument-hint: [optional path to brainstorm.md]
 - 中英文同步：先中文 → 用户定稿 → 再英文（用户明确要求后才写英文）
 - 系列过渡：每篇结尾自然引出下一篇
 - 格式规范：参见 `composir:writing-style` Skill
+
+## 权威源
+
+**核查阶段（`/composir:review-cycle`）两个 agent 认的一手源**。只有这些源支持的断言可以被标为 Critical；其他来源（个人博客、SNS、二手转述）最多支持 Warning。
+
+- [具体源 1：例 `claude.com/en/*`]
+- [具体源 2：例 `github.com/anthropics/claude-code`]
+- [具体源 3：例 某篇 arxiv 论文的 URL]
+- ...
+
+**本地代码库**（如适用）：
+- 路径：[同"代码库位置"节]
+- 基于 commit/tag：[如适用]
 
 ## 文章详细规划
 
