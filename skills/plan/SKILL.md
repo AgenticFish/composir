@@ -6,6 +6,48 @@ argument-hint: [optional path to brainstorm.md]
 
 # Plan: 把 brainstorm 转成可执行的写作计划
 
+## 抓网页协议（三层缓存）
+
+所有对外部 URL 的抓取走下面三层，**不要直接调 WebFetch**：
+
+### 1. raw-page 缓存（curl 存的原始 HTML）
+
+```bash
+P=$(${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch "<URL>") && echo "$P"
+```
+
+exit 0 → `Read "$P"`，用 Grep 定位需要的事实/引文，结束。
+
+### 2. WebFetch 回答缓存（exit 2 进入本层）
+
+```bash
+W=$(${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch --wf-path "<URL>")
+[ -s "$W" ] && cat "$W"
+```
+
+扫一遍已有的 `## Q: ...` 条目。**若某条 Q 的答案能覆盖当前问题**，引用，结束。
+判断原则：语义覆盖，不是字符匹配——"发布年份"能答"发布时间"；但"具体哪一天"不一定被"哪一年"覆盖。
+
+### 3. WebFetch + 追加到 wf-cache（前两层都失败）
+
+调 `WebFetch "<URL>" "<your prompt>"`。拿到响应 `$R` 后追加：
+
+```bash
+{
+  printf '\n## Q: %s (%s)\n\n%s\n\n---\n' "<your prompt>" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$R"
+} >> "$W"
+```
+
+wf-cache 文件首次创建时，在顶部加一行 header：
+
+```markdown
+# WebFetch cache for <URL>
+```
+
+### 例外
+
+若 URL 指向 plan.md 已登记本地仓库对应的 GitHub 页，跳过整节，按"本地代码优先"规则（CLAUDE.md §14）直接走本地 Grep/Read。
+
 读取 `brainstorm.md`，产出结构化的 `plan.md`——包含每篇文章的详细规划、关键术语、需要研究的内容、核查要点，以及进度追踪表。
 
 参数 `$ARGUMENTS`：指向 brainstorm.md 的路径（形如 `<系列目录>/.composir/<slug>-brainstorm.md`）。如果省略，按以下顺序找：
