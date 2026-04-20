@@ -6,6 +6,48 @@ argument-hint: [query or term]
 
 # Research: 精确查找一个术语或事实
 
+## 抓网页协议（三层缓存）
+
+所有对外部 URL 的抓取走下面三层，**不要直接调 WebFetch**：
+
+### 1. raw-page 缓存（curl 存的原始 HTML）
+
+```bash
+P=$(${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch "<URL>") && echo "$P"
+```
+
+exit 0 → `Read "$P"`，用 Grep 定位需要的事实/引文，结束。
+
+### 2. WebFetch 回答缓存（exit 2 进入本层）
+
+```bash
+W=$(${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch --wf-path "<URL>")
+[ -s "$W" ] && cat "$W"
+```
+
+扫一遍已有的 `## Q: ...` 条目。**若某条 Q 的答案能覆盖当前问题**，引用，结束。
+判断原则：语义覆盖，不是字符匹配——"发布年份"能答"发布时间"；但"具体哪一天"不一定被"哪一年"覆盖。
+
+### 3. WebFetch + 追加到 wf-cache（前两层都失败）
+
+调 `WebFetch "<URL>" "<your prompt>"`。拿到响应 `$R` 后追加：
+
+```bash
+{
+  printf '\n## Q: %s (%s)\n\n%s\n\n---\n' "<your prompt>" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$R"
+} >> "$W"
+```
+
+wf-cache 文件首次创建时，在顶部加一行 header：
+
+```markdown
+# WebFetch cache for <URL>
+```
+
+### 例外
+
+若 URL 指向 plan.md 已登记本地仓库对应的 GitHub 页，跳过整节，按"本地代码优先"规则（CLAUDE.md §14）直接走本地 Grep/Read。
+
 对一个具体术语/概念/事实做结构化查询，返回**简洁的结构化结果 + 权威来源 URL**。适合写作过程中遇到不确定的点、或主动核查一个关键事实。
 
 参数 `$ARGUMENTS`：查询。例：
@@ -39,14 +81,14 @@ argument-hint: [query or term]
 
 根据查询类型构造 1-3 次 WebSearch。
 
-### 第 3 步：筛选和 WebFetch
+### 第 3 步：筛选并按 §抓网页协议 抓取
 
 从 WebSearch 结果里**手动挑出权威源**（看 URL 就能判断）：
 - 官方站（github.com/org, docs.*, *.dev）
 - 学术站（arxiv.org, acm.org, aclweb.org, proceedings.mlr.press）
 - 知名机构（openai.com, anthropic.com, google-research.*, microsoft.com/research）
 
-对 1-3 个最权威的结果用 WebFetch 读取完整内容。
+对 1-3 个最权威的结果按 §抓网页协议 的三层流程读取完整内容。
 
 ### 第 4 步：交叉验证
 
