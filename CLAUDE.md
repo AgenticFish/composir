@@ -11,13 +11,14 @@ Claude Code plugin that drives the full writing workflow for popular-science art
 
 ## Architecture
 
-Three batches, each a minor version bump:
+Three MVP batches + one polish/hardening round, each a minor version bump:
 
 | Batch | Version | Components |
 |-------|---------|-----------|
 | 1 — Planning | 0.1.0 → 0.1.1 | `brainstorm`, `plan`, `writing-style` (background, auto-load) |
 | 2 — Review | 0.2.0 | `review-cycle` orchestrator + `fact-checker` & `academic-reviewer` agents |
 | 3 — Writing tools | 0.3.0 | `research`, `check-format`, `translate-to-english` |
+| 4 — Polish & hardening | 0.4.0 | `.composir/` folder + slug-prefixed filenames + review-cycle hardening (no new skills/agents; behavior & structure changes only) |
 
 File layout:
 - `.claude-plugin/plugin.json` — plugin manifest (name, version)
@@ -39,6 +40,18 @@ Finalized 2026-04-18:
 5. **Fact vs academic check**: two independent agents with separate forked contexts
 6. **Post-review flow**: stops after Chinese finalized — English is only written when user explicitly asks; **do not auto-trigger English**
 7. **Legacy-series fallback**: skills read ONLY from the current `.composir/` layout with slug prefixes. Pre-`.composir/` series (flat layout) and pre-slug-prefix series (un-prefixed `brainstorm.md`/`plan.md` inside `.composir/`) need manual migration if the user wants to keep running skills on them; otherwise they're left as-is.
+
+### Review-cycle hardening (2026-04-19, shipped in 0.4.0)
+
+Driven by a real-world case where `aizhilv/claude-code/01-context管理` hit 4 iterations without converging — agents cited personal blogs as "authoritative", contradicted each other on numbers, and the pass condition required both Critical=0 and Warning=0, which was nearly impossible when each round invented new "could be more precise" nuances.
+
+8. **Per-topic authoritative source whitelist, not plugin-level**: popular-science topics are too varied for a static plugin-wide list; brainstorm asks the user to confirm a per-topic whitelist that gets carried through plan.md. Agents read plan.md's `## 权威源` section. A type-level blacklist (personal blogs, SNS, forum posts) lives in agent definitions as general principle — not a domain list.
+9. **Critical=0 is the pass condition; Warning is advisory**: Warning/Minor no longer block passing. They get surfaced as a summary for the author to consider. This directly breaks the infinite-nuance loop.
+10. **Critical requires a first-hand source URL**: enforced in both agent definitions. Without one, a Critical claim must be downgraded. review-cycle's auto-revision also skips Criticals that lack first-hand sources and flags the omission to the user.
+11. **Snapshots + incremental review for iter2+**: before invoking agents, review-cycle saves `.composir/<article-slug>-snapshot-iter<N+1>.md`. iter2+ agents receive a unified diff (vs prior snapshot) + paths to prior reports, and are instructed to only audit touched paragraphs + verify prior Criticals were fixed + do cross-reference checks when a diff change obviously affects an un-touched paragraph. No re-scanning for fresh nuances in untouched text.
+12. **No direct contradictions of prior-round judgments**: if an agent disagrees with a prior Critical, it writes a `## 对上轮判定的异议` section rather than reporting an opposite Critical. review-cycle/author arbitrates. Prevents ping-pong between rounds.
+13. **Stricter over-simplification bar (academic-reviewer)**: "reader's mental model leads to a wrong conclusion" is the Critical line. Simplifications that are directionally correct — even if imprecise — are at most Minor. Self-check: "in what concrete decision would the reader act wrong under the current explanation?" — if no concrete wrong action, not a Critical/Warning.
+14. **Local-repo-first for code analysis**: when plan.md records a local clone path, agents MUST use Grep/Glob/Read locally for code/API/config claims. WebFetch against the same GitHub repo and WebSearch for second-hand blogs about it are disallowed (PR comments, issue threads, release notes are exceptions since they're not in the code). brainstorm also captures commit/tag to let agents verify on the intended version.
 
 ## Plugin vs memory split
 

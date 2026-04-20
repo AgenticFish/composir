@@ -18,11 +18,11 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 #### `/brainstorm`
 
-驱动一次交互式头脑风暴，和你讨论：写什么、单篇 or 系列、系列结构、关键概念、类比等。最后会让你确认一个 slug（例：`git-worktree`、`ai-journey-android-skills`），产出 `.composir/<slug>-brainstorm.md`。如果主题涉及分析某代码库，会要求你把仓库 clone 到本地。
+驱动一次交互式头脑风暴，和你讨论：写什么、单篇 or 系列、系列结构、关键概念、类比等。还会和你一起列出本主题的**权威源白名单**（核查阶段用），并让你确认一个 slug（例：`git-worktree`、`ai-journey-android-skills`），产出 `.composir/<slug>-brainstorm.md`。如果主题涉及分析某代码库，会要求你把仓库 clone 到本地并记录 commit/tag。
 
 #### `/plan`
 
-读取 `.composir/<slug>-brainstorm.md`，产出结构化的 `.composir/<slug>-plan.md`——包含每篇文章的详细规划、关键术语、核查要点、进度追踪表。slug 和 brainstorm 一致。
+读取 `.composir/<slug>-brainstorm.md`，产出结构化的 `.composir/<slug>-plan.md`——包含每篇文章的详细规划、关键术语、核查要点、权威源白名单、代码库位置（如适用）、进度追踪表。slug 和 brainstorm 一致。
 
 #### 背景 Skill：`writing-style`
 
@@ -32,7 +32,17 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 #### `/review-cycle [article-path]`
 
-对写好的草稿执行完整核查循环：fact-checker 和 academic-reviewer 两个 agent 并行审查，自动应用修订，再次核查——最多 5 轮。超过 5 轮未通过会问你怎么办。每轮的报告都保存下来。
+对写好的草稿执行完整核查循环：fact-checker 和 academic-reviewer 两个 agent **并行**审查，发现 Critical 自动修订，再次核查——最多 5 轮。
+
+几个关键设计：
+
+- **通过条件**：**Critical = 0 即通过**；Warning 降级为 advisory（合到报告里发给你参考，不触发下一轮），避免循环死磕"可以更精确"类 nuance
+- **权威源白名单**：Critical 必须附一手源 URL（来自 plan.md 的"权威源"节或本地代码）；个人博客/Medium/Substack/SNS 最多支持 Warning
+- **快照 + 增量核查**：每轮开始前存一份文章快照；iter2+ 只审本轮改动的段落 + 验证上轮 Critical 是否已修，不再重扫未动段落
+- **禁止推翻上轮判定**：若 agent 认为上轮判错了，要在"对上轮判定的异议"节里说理由，由你裁决；不允许直接报相反 Critical
+- **本地代码优先**：涉及目标仓库的断言必须用本地 Grep/Read；禁止对同仓库 WebFetch
+
+每轮的报告和快照都保存在 `.composir/` 下，文件名带 `<article-slug>-review-*-iter<N>.md` 和 `<article-slug>-snapshot-iter<N>.md` 前缀。
 
 #### Agent：`fact-checker`
 
@@ -88,8 +98,12 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 └── .composir/
     ├── ai-journey-android-skills-brainstorm.md
     ├── ai-journey-android-skills-plan.md
+    ├── 01-xxx-snapshot-iter1.md                  ← 每轮 agent 看到的版本
+    ├── 01-xxx-snapshot-iter2.md
     ├── 01-xxx-review-fact-iter1.md
-    └── 01-xxx-review-academic-iter1.md
+    ├── 01-xxx-review-academic-iter1.md
+    ├── 01-xxx-review-fact-iter2.md
+    └── 01-xxx-review-academic-iter2.md
 ```
 
 **多个单篇共享目录**（每个单篇自己的 slug）：
