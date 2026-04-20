@@ -18,11 +18,11 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 #### `/brainstorm`
 
-驱动一次交互式头脑风暴，和你讨论：写什么、单篇 or 系列、系列结构、关键概念、类比等。产出 `.composir/brainstorm.md`。如果主题涉及分析某代码库，会要求你把仓库 clone 到本地。
+驱动一次交互式头脑风暴，和你讨论：写什么、单篇 or 系列、系列结构、关键概念、类比等。最后会让你确认一个 slug（例：`git-worktree`、`ai-journey-android-skills`），产出 `.composir/<slug>-brainstorm.md`。如果主题涉及分析某代码库，会要求你把仓库 clone 到本地。
 
 #### `/plan`
 
-读取 `.composir/brainstorm.md`，产出结构化的 `.composir/plan.md`——包含每篇文章的详细规划、关键术语、核查要点、进度追踪表。
+读取 `.composir/<slug>-brainstorm.md`，产出结构化的 `.composir/<slug>-plan.md`——包含每篇文章的详细规划、关键术语、核查要点、进度追踪表。slug 和 brainstorm 一致。
 
 #### 背景 Skill：`writing-style`
 
@@ -59,14 +59,14 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 ## 工作流
 
 ```
-/brainstorm                    ← 主题、读者、形式、结构
-   ↓ .composir/brainstorm.md
+/brainstorm                    ← 主题、读者、形式、结构、slug
+   ↓ .composir/<slug>-brainstorm.md
 /plan                          ← 结构化 plan
-   ↓ .composir/plan.md（用户审核）
+   ↓ .composir/<slug>-plan.md（用户审核）
 [写作，中途可随时 /research <term> 查资料]
    ↓ 中文草稿（放在系列根目录）
 /review-cycle article.md       ← 自动 fact + academic 核查 + 修订循环
-   ↓ 通过后 .composir/plan.md 标为"定稿"
+   ↓ 通过后 .composir/<slug>-plan.md 标为"定稿"
 /check-format article.md       ← 发布前机械格式检查
    ↓ 用户说"写英文"
 /translate-to-english article.md
@@ -76,18 +76,34 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 ### 文件布局
 
-每个文章系列目录长这样：
+所有 `.composir/` 下的文件都带**slug 前缀**，这样同一个目录下可以并存多个独立的 brainstorm/plan（适合把多篇单篇文章放一起）。
+
+**系列的典型布局**（slug = 系列 slug）：
 
 ```
 <系列目录>/
-├── 01-xxx.md                          ← 文章本体
+├── 01-xxx.md                                     ← 文章本体
 ├── 02-yyy.md
 ├── 01-xxx-english.md
-└── .composir/                         ← 写作过程元信息（默认隐藏）
-    ├── brainstorm.md
-    ├── plan.md
-    ├── review-fact-01-xxx-iter1.md
-    └── review-academic-01-xxx-iter1.md
+└── .composir/
+    ├── ai-journey-android-skills-brainstorm.md
+    ├── ai-journey-android-skills-plan.md
+    ├── 01-xxx-review-fact-iter1.md
+    └── 01-xxx-review-academic-iter1.md
+```
+
+**多个单篇共享目录**（每个单篇自己的 slug）：
+
+```
+<随笔目录>/
+├── git-worktree.md                     ← 文章本体
+├── ssh-config-tricks.md
+└── .composir/
+    ├── git-worktree-brainstorm.md
+    ├── git-worktree-plan.md
+    ├── git-worktree-review-fact-iter1.md
+    ├── ssh-config-tricks-brainstorm.md
+    └── ssh-config-tricks-plan.md
 ```
 
 ## License

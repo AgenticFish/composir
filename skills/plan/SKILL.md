@@ -8,15 +8,20 @@ argument-hint: [optional path to brainstorm.md]
 
 读取 `brainstorm.md`，产出结构化的 `plan.md`——包含每篇文章的详细规划、关键术语、需要研究的内容、核查要点，以及进度追踪表。
 
-参数 `$ARGUMENTS`：指向 brainstorm.md 的路径。如果省略，默认在**当前工作目录下的 `.composir/brainstorm.md`** 找。如果还找不到，问用户路径。
+参数 `$ARGUMENTS`：指向 brainstorm.md 的路径（形如 `<系列目录>/.composir/<slug>-brainstorm.md`）。如果省略，按以下顺序找：
+
+1. glob 当前工作目录的 `.composir/*-brainstorm.md`
+2. 如果恰好一个匹配，直接用
+3. 如果多个匹配（同目录下多个单篇的 brainstorm），用 `AskUserQuestion` 让用户选
+4. 如果 0 个匹配，问用户路径
 
 ## 流程
 
-### 第 1 步：读取 brainstorm.md
+### 第 1 步：读取 brainstorm.md 并提取 slug
 
-用 `Read` 工具读取 brainstorm.md 的完整内容（标准位置：`<系列目录>/.composir/brainstorm.md`）。确认它是由 `/composir:brainstorm` 生成的结构化文档。
+用 `Read` 工具读取 brainstorm.md 的完整内容。从**文件名**里提取 slug——文件名形如 `<slug>-brainstorm.md`，剥掉 `-brainstorm.md` 后缀即得 slug。这个 slug 会用在后面写出的 plan.md 文件名里。
 
-如果文件不存在或格式不匹配，**停下来问用户**："找不到 `.composir/brainstorm.md`，请告诉我它在哪里，或者先运行 `/composir:brainstorm` 生成一份。"
+确认它是由 `/composir:brainstorm` 生成的结构化文档。如果文件不存在或格式不匹配，**停下来问用户**："找不到 `.composir/<slug>-brainstorm.md`，请告诉我它在哪里，或者先运行 `/composir:brainstorm` 生成一份。"
 
 ### 第 2 步：检查信息完整性
 
@@ -53,7 +58,7 @@ argument-hint: [optional path to brainstorm.md]
 
 ### 第 4 步：生成 plan.md
 
-把所有内容整理成结构化 Markdown，保存到 brainstorm.md 所在的**同一个 `.composir/` 目录**，即 `<系列目录>/.composir/plan.md`。
+把所有内容整理成结构化 Markdown，保存到 brainstorm.md 所在的**同一个 `.composir/` 目录**，文件名为 `<slug>-plan.md`——其中 `<slug>` 和第 1 步从 brainstorm 文件名提取的 slug 一致。完整路径：`<系列目录>/.composir/<slug>-plan.md`。
 
 ### 第 5 步：提醒用户审核
 
@@ -67,7 +72,7 @@ argument-hint: [optional path to brainstorm.md]
 # 写作计划：[主题/系列名]
 
 **日期**：YYYY-MM-DD
-**关联 brainstorm**：`./brainstorm.md`（plan.md 和 brainstorm.md 同在 `.composir/` 下）
+**关联 brainstorm**：`./<slug>-brainstorm.md`（plan 和 brainstorm 同在 `.composir/` 下，共用 slug）
 **状态**：plan 已生成，待用户审核
 
 ## 合集与系列
@@ -150,6 +155,7 @@ argument-hint: [optional path to brainstorm.md]
 
 ## 重要约定
 
+- **plan 和 brainstorm 共用 slug**——从 brainstorm 文件名提取的 slug 直接用在 plan.md 上，不要另起名
 - **plan.md 和 brainstorm.md 放同一个 `.composir/` 目录**——和文章本体分离，系列根目录只剩文章文件
 - **每篇文章的"核查要点"要具体**，不要只写"检查事实"——越具体，后面 fact-checker 和 academic-reviewer 越能精准工作
 - **"中文核查迭代 0 / 5"** 是批次 2 才用的字段，现在先写上占位，后面 review-cycle Skill 会实际去改这一列
