@@ -93,6 +93,7 @@ In any Claude Code session:
 - **0.2.0** — Batch 2: review-cycle with fact-checker + academic-reviewer agents
 - **0.3.0** — Batch 3: research, check-format, translate-to-english
 - **0.4.0** — `.composir/` folder for process artifacts + slug-prefixed filenames + review-cycle hardening (per-topic source whitelist, Critical=0 pass condition, snapshots + incremental review, prior-round context, stricter over-simplification bar, local-repo-first for code analysis)
+- **0.4.1** — brainstorm actively asks "run /composir:plan now?" and invokes the plan skill on confirmation, instead of ending with a passive "随时 /composir:plan" message that forces the user to type the command by hand
 
 ## Collections referenced in the plugin
 

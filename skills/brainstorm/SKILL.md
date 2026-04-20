@@ -143,6 +143,21 @@ argument-hint: [optional topic hint]
 
 把讨论的所有内容整理成一个结构化 Markdown 文档，保存到 `<系列目录>/.composir/<slug>-brainstorm.md`——其中 `<slug>` 是第 8 步确定的值。**如果 `.composir/` 不存在，用 Write 工具会自动创建**（无需 mkdir）。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
 
+### 第 10 步：主动询问是否立即生成 plan
+
+brainstorm.md 写好后**不要**以一句"随时运行 `/composir:plan`"结束对话——那会让用户必须手工敲命令。
+
+用 `AskUserQuestion` 主动问：
+
+- 问题："brainstorm.md 已保存在 `<绝对路径>`。现在基于这份 brainstorm 生成 plan.md 吗？"
+- 选项 A（推荐）：**现在开始 plan** —— 你立即用 `Skill` 工具调用 `composir:plan`，`args` 传 brainstorm.md 的绝对路径
+- 选项 B：**先暂停** —— 回一句"好。你审核完 brainstorm 随时告诉我 '开始 plan' 或直接运行 `/composir:plan`。"
+
+**规则**：
+- 如果用户在第 1 步就表达了"一气呵成"的意愿（例："直接跑完 brainstorm 和 plan"），跳过这个询问，直接进入 plan
+- 如果用户选 A，你用 Skill 调 plan 时要把 brainstorm.md 的绝对路径作为 `args` 传过去，让 plan skill 不用再 glob 找
+- 如果用户选 B，**不要**在 brainstorm.md 里加任何关于"等用户手动触发"的内容——template 里的"下一步"已经说明了下一步动作
+
 ## brainstorm.md 的结构模板
 
 ```markdown
