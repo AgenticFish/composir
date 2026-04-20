@@ -120,6 +120,39 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
     └── ssh-config-tricks-plan.md
 ```
 
+## 缓存层（0.5.0+）
+
+所有外部 URL 抓取走 `.composir/.cache/` 三层缓存：
+
+1. **raw-page 缓存**：`bin/composir-fetch <url>` 用 curl 存原始 HTML，只缓存 2xx 响应；后续 Read 复用
+2. **WebFetch Q/A 缓存**：回退 WebFetch 时把响应追加到 `<hash>.wf.md`，下一轮 agent 可命中已有 Q/A
+3. **新 WebFetch**：前两层都 miss 时才发网络请求，并把响应写回 cache
+
+### 何时命中
+
+- 同系列内：`/composir:review-cycle` 多轮迭代、或 brainstorm → fact-check 跨 skill 的同 URL 复用
+- 跨系列：缓存是系列目录-local（`.composir/.cache/`），系列之间互不共享
+
+### 强制重抓
+
+```bash
+# 某个 URL 的内容过时了，想重抓
+rm .composir/.cache/<hash>-<hint>.html
+# 或清空整个系列的缓存
+rm -rf .composir/.cache/
+```
+
+### Troubleshooting
+
+- `composir-fetch: permission denied` → `chmod +x ${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch`
+- 所有 URL 都 exit 2 → 检查网络 / curl；若站点是 JS-heavy SPA（curl 拿不到真正内容），设计上就走第 2/3 层
+- HTTP 4xx/5xx 页不会被缓存（curl -f 拦掉，exit 2 回退到 WebFetch）
+- 缓存文件被意外 commit 进 git → `.composir/.gitignore` 应含 `.cache/`，没有的话 `composir-fetch` 会自动补
+
+### Git
+
+`.composir/.cache/` 默认被 `.composir/.gitignore` 排除。不入库。
+
 ## License
 
 MIT
