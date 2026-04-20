@@ -63,7 +63,14 @@ argument-hint: [optional topic hint]
 
 选 A 或 B 的话，**等用户提供本地路径后再继续** brainstorm。把本地路径记录到 brainstorm.md 的"代码库位置"字段，后面 plan 和写作阶段都能用。
 
-选 C 的话，提醒用户："那我先用 URL 讨论方向，但等到真正深入分析代码时，还是需要本地路径——到时候再提醒你。"
+**同时记录 commit/tag**：问用户"你想基于哪个 commit 或 tag 讨论？"，给几个合理候选：
+- 最新的 `main`（或仓库默认分支）的 HEAD —— 用 `git -C <path> rev-parse HEAD` 拿 hash
+- 最新的正式 release tag（例：`v2.1.7`）—— 用 `git -C <path> tag --sort=-v:refname | head -1` 看候选
+- 用户指定的某个具体 commit/tag
+
+这个 commit/tag 会记录到 brainstorm.md 的"代码库位置"字段，供 fact-checker 和 academic-reviewer 核查时定位到同一个版本（仓库更新了也还能核对 —— 核查员会注意到当前 checkout 和记录不一致）。
+
+选 C 的话，提醒用户："那我先用 URL 讨论方向，但等到真正深入分析代码时，还是需要本地路径和 commit/tag —— 到时候再提醒你。"
 
 ### 第 3 步：确定合集归属
 
@@ -157,6 +164,7 @@ argument-hint: [optional topic hint]
 
 - **GitHub URL**：[原始 URL]
 - **本地路径**：[用户 clone 后的路径，例 /Users/xxx/workspaces/yyy]
+- **基于 commit/tag**：[例 `v2.1.7` 或 `a1b2c3d4...`] —— 写作时讨论的是哪个版本
 - **状态**：已 clone / 未 clone（仅 URL 讨论）
 
 如果主题不涉及代码分析，删除这一节。
