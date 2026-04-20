@@ -114,6 +114,7 @@ In any Claude Code session:
 - **0.4.1** — brainstorm actively asks "run /composir:plan now?" and invokes the plan skill on confirmation, instead of ending with a passive "随时 /composir:plan" message that forces the user to type the command by hand
 - **0.5.0** — 三层 WebFetch 缓存：`bin/composir-fetch` 脚本（只缓存 2xx 响应） + 5 处 skill/agent 接入；raw page + WebFetch Q/A 累积日志；`.composir/.cache/` 系列-local，gitignore 排除
 - **0.5.1** — 单篇文章独立核查：`/composir:fact-check` + `/composir:academic-check` 两个 skill，自动 bootstrap 缺失的 plan.md（读文章推断权威源候选，用户确认后写最小 plan），独立 `## 单 agent 核查历史` 进度表跟 review-cycle 正交
+- **0.5.2** — fix：fact-check / academic-check / review-cycle 生成给核查 agent 的 prompt 里加 "**CWD 必做**" 指令，强制 agent 先 `cd "<系列目录>"` 再跑任何 Bash。修掉 0.5.1 e2e 发现的 bug：用户 CWD 不在系列目录时，composir-fetch 把缓存写到错目录，agent 读不到
 
 ## Collections referenced in the plugin
 
