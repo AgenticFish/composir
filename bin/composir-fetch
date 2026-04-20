@@ -59,7 +59,7 @@ fi
 
 # --- cache miss: curl ---
 TMP="${RAW_FILE}.tmp.$$"
-if ! curl -sSL --max-time 30 \
+if ! curl -fsSL --max-time 30 \
      -A "Mozilla/5.0 (composir-fetch)" \
      -o "$TMP" "$URL"; then
   rm -f "$TMP"
