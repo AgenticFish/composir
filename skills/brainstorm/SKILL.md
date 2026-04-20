@@ -6,6 +6,48 @@ argument-hint: [optional topic hint]
 
 # Brainstorm: 头脑风暴写作选题
 
+## 抓网页协议（三层缓存）
+
+所有对外部 URL 的抓取走下面三层，**不要直接调 WebFetch**：
+
+### 1. raw-page 缓存（curl 存的原始 HTML）
+
+```bash
+P=$(${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch "<URL>") && echo "$P"
+```
+
+exit 0 → `Read "$P"`，用 Grep 定位需要的事实/引文，结束。
+
+### 2. WebFetch 回答缓存（exit 2 进入本层）
+
+```bash
+W=$(${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch --wf-path "<URL>")
+[ -s "$W" ] && cat "$W"
+```
+
+扫一遍已有的 `## Q: ...` 条目。**若某条 Q 的答案能覆盖当前问题**，引用，结束。
+判断原则：语义覆盖，不是字符匹配——"发布年份"能答"发布时间"；但"具体哪一天"不一定被"哪一年"覆盖。
+
+### 3. WebFetch + 追加到 wf-cache（前两层都失败）
+
+调 `WebFetch "<URL>" "<your prompt>"`。拿到响应 `$R` 后追加：
+
+```bash
+{
+  printf '\n## Q: %s (%s)\n\n%s\n\n---\n' "<your prompt>" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$R"
+} >> "$W"
+```
+
+wf-cache 文件首次创建时，在顶部加一行 header：
+
+```markdown
+# WebFetch cache for <URL>
+```
+
+### 例外
+
+若 URL 指向 plan.md 已登记本地仓库对应的 GitHub 页，跳过整节，按"本地代码优先"规则（CLAUDE.md §14）直接走本地 Grep/Read。
+
 驱动一轮结构化的写作头脑风暴，和用户讨论清楚：写什么、怎么写、是单篇还是系列、系列的结构。最终产出 `brainstorm.md` 文档。
 
 用户输入的 topic hint 作为起点：$ARGUMENTS
@@ -50,6 +92,8 @@ argument-hint: [optional topic hint]
 - **上下文**：WebFetch 每次抓页面都吃大量 token；本地读文件高效得多
 - **准确性**：GitHub 页面可能有分页、懒加载，远不如直接读文件完整
 - **用户协作**：用户可以在自己的编辑器里同步看代码，一起定位关键位置
+
+（这是 §抓网页协议 的 "例外" 条款：local repo-first 优先级更高。其他 URL 仍走三层缓存。）
 
 **具体怎么做**：
 
