@@ -29,19 +29,23 @@ File layout:
 
 Finalized 2026-04-18:
 
-1. **Process-artifact location**: each series gets a `.composir/` subdirectory holding `brainstorm.md`, `plan.md`, and `review-*-iterN.md` reports. Articles themselves stay in the series root directory. Rationale: keeps articles visually separate from process metadata (updated 2026-04-19).
-2. **brainstorm.md**: persisted and committed (not ephemeral)
-3. **Iteration counter**: stored in plan.md's progress table (not a separate state file)
-4. **Fact vs academic check**: two independent agents with separate forked contexts
-5. **Post-review flow**: stops after Chinese finalized — English is only written when user explicitly asks; **do not auto-trigger English**
-6. **Legacy-series fallback**: skills read ONLY from `.composir/`. Series created before 2026-04-19 with flat layout (brainstorm.md / plan.md at root) need manual migration if the user wants to keep running skills on them; otherwise they're left as-is.
+1. **Process-artifact location**: each series gets a `.composir/` subdirectory holding brainstorm, plan, and review reports. Articles themselves stay in the series root directory. Rationale: keeps articles visually separate from process metadata (2026-04-19).
+2. **Slug-prefixed filenames inside `.composir/`** (2026-04-19): all files use a slug prefix, so one `.composir/` can hold multiple independent writing units without collision. Naming:
+   - `<slug>-brainstorm.md`, `<slug>-plan.md` — slug = series slug (series mode) or article slug (single-article mode, multiple singles sharing one dir)
+   - `<article-slug>-review-fact-iter<N>.md`, `<article-slug>-review-academic-iter<N>.md` — always per-article
+   - Lookup: plan skill globs `*-brainstorm.md`; review-cycle/translate try `<article-slug>-plan.md` first then glob `*-plan.md`
+3. **brainstorm.md**: persisted and committed (not ephemeral)
+4. **Iteration counter**: stored in plan.md's progress table (not a separate state file)
+5. **Fact vs academic check**: two independent agents with separate forked contexts
+6. **Post-review flow**: stops after Chinese finalized — English is only written when user explicitly asks; **do not auto-trigger English**
+7. **Legacy-series fallback**: skills read ONLY from the current `.composir/` layout with slug prefixes. Pre-`.composir/` series (flat layout) and pre-slug-prefix series (un-prefixed `brainstorm.md`/`plan.md` inside `.composir/`) need manual migration if the user wants to keep running skills on them; otherwise they're left as-is.
 
 ## Plugin vs memory split
 
 - **Plugin (this repo)**: the writing system's engine — skills, agents, format rules, workflow logic. Shared, version-controlled.
 - **Memory** (`~/.claude/projects/.../memory/`): user-level preferences and dynamic state (per-series progress that fell back to memory, writing feedback). Personal, not shareable.
 
-Rule of thumb: if it belongs in "how the system works," it's in the plugin. If it's "what is currently happening," it's in memory or in the series' own `.composir/plan.md`.
+Rule of thumb: if it belongs in "how the system works," it's in the plugin. If it's "what is currently happening," it's in memory or in the series' own `.composir/<slug>-plan.md`.
 
 ## Development conventions
 
@@ -99,5 +103,6 @@ User's main writing repo: `/Users/irene.yu/Documents/workspaces/IreneXY/misc/wei
 
 - **Migration of existing memory series data into per-series plan.md files**: NOT planned (user decided 2026-04-18)
 - **Auto-migration of pre-`.composir/` flat-layout series**: NOT planned (user decided 2026-04-19). Those series either stay flat or are manually moved by the user.
+- **Auto-migration of un-prefixed `.composir/brainstorm.md`/`plan.md` from the short-lived intermediate layout**: NOT planned. Rename to `<slug>-brainstorm.md`/`<slug>-plan.md` manually if the skills need to read them.
 - **Hook-based automation** (e.g., PostToolUse auto-run check-format): NOT currently planned
 - **End-to-end walkthrough documentation**: NOT currently planned; README covers basics

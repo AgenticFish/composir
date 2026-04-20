@@ -14,18 +14,20 @@ argument-hint: [optional topic hint]
 
 ### 第 1 步：确认保存目录
 
-**一开始就问用户**文章系列要放到哪个目录。brainstorm.md 会写到该目录下的 `.composir/` 子文件夹里（和后面的 plan.md、review 报告一起）——文章本身仍放在系列根目录。这一步不能省略。
+**一开始就问用户**文章系列要放到哪个目录。brainstorm 和后续 plan、review 报告都会写到该目录下的 `.composir/` 子文件夹里——文章本身仍放在系列根目录。这一步不能省略。
 
 用 `AskUserQuestion` 询问，给几个合理的候选：
-- 当前工作目录（cwd） → brainstorm.md 写到 `cwd/.composir/brainstorm.md`
-- cwd 下新建一个主题子目录（比如 `cwd/<topic-slug>/`） → brainstorm.md 写到 `cwd/<topic-slug>/.composir/brainstorm.md`
-- 其他路径
+- 当前工作目录（cwd） → 写到 `cwd/.composir/`
+- cwd 下新建一个主题子目录 → 写到 `cwd/<topic>/.composir/`
+- 已存在的某个目录（例：单篇文章共享目录）→ 新文件按 `<slug>-brainstorm.md` 命名，避免和该目录已有的其他 brainstorm 冲突
 
-如果用户一开始就在 prompt 里说了路径，跳过这一步（仍按 `<path>/.composir/brainstorm.md` 组织）。
+如果用户一开始就在 prompt 里说了路径，跳过这一步。
 
-**提醒规则**：如果用户在整个 brainstorm 过程中没提保存位置、也没回答这个问题，**主动提醒用户**："我们需要决定文章系列放到哪里，否则 brainstorm、plan、文章也不知道放哪。"
+**提醒规则**：如果用户在整个 brainstorm 过程中没提保存位置、也没回答这个问题，**主动提醒用户**："我们需要决定文章放到哪里，否则 brainstorm、plan、文章也不知道放哪。"
 
-**.composir/ 文件夹的用途**：存放写作过程的元信息（brainstorm.md、plan.md、review 报告等）。文章本身写在系列根目录（`.composir/` 的上一级），避免把元信息和正文混在一起。
+**.composir/ 文件夹的用途**：存放写作过程的元信息（`<slug>-brainstorm.md`、`<slug>-plan.md`、`<article>-review-*-iterN.md` 等）。文章本身写在系列根目录（`.composir/` 的上一级），避免把元信息和正文混在一起。
+
+**命名前缀**：`.composir/` 下所有文件都带前缀——brainstorm/plan 用 slug 前缀（系列 slug 或单篇 slug），review 报告用文章 slug 前缀。这样同一个 `.composir/` 可以容纳多个单篇文章的独立元信息，不会冲突。
 
 ### 第 2 步：讨论主题和定位
 
@@ -101,9 +103,23 @@ argument-hint: [optional topic hint]
 
 这一步为后面的 plan 和事实核查打基础。
 
-### 第 7 步：生成 brainstorm.md
+### 第 7 步：确定文件名 slug
 
-把讨论的所有内容整理成一个结构化 Markdown 文档，保存到第 1 步确认的系列根目录下的 `.composir/` 子文件夹——最终路径为 `<系列目录>/.composir/brainstorm.md`。**如果 `.composir/` 不存在，用 Write 工具会自动创建**（无需 mkdir）。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
+在保存前，先确定用于文件命名的 slug（后续 plan.md 和 review 报告也会用它）。
+
+- 如果是**系列**：slug 取自系列名（例："AI之旅 Android Skills" → `ai-journey-android-skills`）
+- 如果是**单篇**：slug 取自主题（例："Git Worktree 详解" → `git-worktree`）
+
+规则：
+- 小写拉丁字母 + 数字 + 连字符（不用下划线、不用中文）
+- 控制在 30 字符以内
+- 全局唯一即可（同一个 `.composir/` 下不能和已有 slug 冲突）
+
+用 `AskUserQuestion` 给出你推荐的 slug，让用户确认或修改。
+
+### 第 8 步：生成 brainstorm.md
+
+把讨论的所有内容整理成一个结构化 Markdown 文档，保存到 `<系列目录>/.composir/<slug>-brainstorm.md`——其中 `<slug>` 是第 7 步确定的值。**如果 `.composir/` 不存在，用 Write 工具会自动创建**（无需 mkdir）。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
 
 ## brainstorm.md 的结构模板
 
@@ -179,12 +195,15 @@ argument-hint: [optional topic hint]
 
 ## 下一步
 
-运行 `/composir:plan` 把这份 brainstorm 转成结构化的 plan.md。
+运行 `/composir:plan` 把这份 brainstorm 转成结构化的 `<slug>-plan.md`。
 ```
+
+**关于 slug**：在 brainstorm.md 正文里可以不写 slug（它已经体现在文件名里了）。template 里不加专门的字段。
 
 ## 重要约定
 
-- **一开始就问保存路径**（指系列根目录），别等到结束才问——brainstorm.md 最终落在 `<系列目录>/.composir/brainstorm.md`
+- **一开始就问保存路径**（指系列根目录），别等到结束才问——brainstorm.md 最终落在 `<系列目录>/.composir/<slug>-brainstorm.md`
+- **slug 由用户拍板**——你可以基于主题/系列名推荐，但必须让用户确认。slug 一旦定下就在整个写作流程里复用（plan、review 报告都以它做前缀）
 - **不要自己决定写什么**——让用户拍板，你只是驱动讨论
 - **一次问一两个问题**，不要一股脑丢一堆给用户
 - **每个选择都记录下来**，文档是用户未来决策的依据

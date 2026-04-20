@@ -23,7 +23,12 @@ argument-hint: [Chinese article file path]
 ### 第 1 步：读取上下文
 
 1. **读中文文章**（`$ARGUMENTS`）——完整内容
-2. **读 `<文章目录>/.composir/plan.md`**——拿以下信息：
+2. **定位并读取对应的 plan.md**（同 review-cycle 的查找逻辑）：
+   - 从文章文件名提取 article slug
+   - 先尝试 `<文章目录>/.composir/<article-slug>-plan.md`
+   - 若不存在，glob `<文章目录>/.composir/*-plan.md`；恰好一个匹配直接用；多个则读每份 plan 看哪份包含当前文章
+   
+   从 plan.md 拿以下信息：
    - 合集英文名（例："AI之旅" → "AI Journey"）
    - 如果系列：系列英文名
    - 本文在系列中的编号
@@ -76,7 +81,7 @@ argument-hint: [Chinese article file path]
 
 ### 第 7 步：更新 plan.md
 
-英文版通过格式检查后，更新 `<文章目录>/.composir/plan.md` 的进度追踪表：
+英文版通过格式检查后，更新第 1 步定位到的那份 `<slug>-plan.md` 的进度追踪表：
 - "英文状态" 列从 `未开始` 改为 `完成`（或"核查中"如果用户要跑 review-cycle）
 
 ### 第 8 步：告诉用户下一步
