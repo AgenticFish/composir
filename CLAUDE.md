@@ -19,6 +19,7 @@ Three MVP batches + one polish/hardening round, each a minor version bump:
 | 2 — Review | 0.2.0 | `review-cycle` orchestrator + `fact-checker` & `academic-reviewer` agents |
 | 3 — Writing tools | 0.3.0 | `research`, `check-format`, `translate-to-english` |
 | 4 — Polish & hardening | 0.4.0 | `.composir/` folder + slug-prefixed filenames + review-cycle hardening (no new skills/agents; behavior & structure changes only) |
+| 5 — Webfetch cache | 0.5.0 | `bin/composir-fetch` + 5 处 skill/agent 接入三层缓存（behavior change, no new skills/agents） |
 
 File layout:
 - `.claude-plugin/plugin.json` — plugin manifest (name, version)
@@ -52,6 +53,14 @@ Driven by a real-world case where `aizhilv/claude-code/01-context管理` hit 4 i
 12. **No direct contradictions of prior-round judgments**: if an agent disagrees with a prior Critical, it writes a `## 对上轮判定的异议` section rather than reporting an opposite Critical. review-cycle/author arbitrates. Prevents ping-pong between rounds.
 13. **Stricter over-simplification bar (academic-reviewer)**: "reader's mental model leads to a wrong conclusion" is the Critical line. Simplifications that are directionally correct — even if imprecise — are at most Minor. Self-check: "in what concrete decision would the reader act wrong under the current explanation?" — if no concrete wrong action, not a Critical/Warning.
 14. **Local-repo-first for code analysis**: when plan.md records a local clone path, agents MUST use Grep/Glob/Read locally for code/API/config claims. WebFetch against the same GitHub repo and WebSearch for second-hand blogs about it are disallowed (PR comments, issue threads, release notes are exceptions since they're not in the code). brainstorm also captures commit/tag to let agents verify on the intended version.
+
+### Webfetch 缓存 (2026-04-20, 0.5.0)
+
+驱动：review-cycle 多轮迭代时 fact-checker / academic-reviewer 对同一批 URL 反复 WebFetch；brainstorm 抓过的页不被下游 agent 复用——浪费 token、拖慢核查。
+
+15. **三层缓存 + 脚本契约**：`.composir/.cache/` 下建持久缓存；插件 ship `bin/composir-fetch <url>` 脚本，skills/agents 通过 Bash 调脚本而非直接 WebFetch。三层命中：(a) raw-page HTML（curl 存，只缓存 2xx）；(b) WebFetch Q/A 日志（`<hash>.wf.md` 按 URL 累积历次回答）；(c) 都 miss → WebFetch 并追加 Q/A。永不过期（系列目录天然隔离）；`.gitignore` 自举排除。
+16. **canonical block 在 5 个触点重复、不抽象**：Claude Code skill/agent 文件是独立上下文信封，没有 include 机制。fetch 协议只能在 5 个文件里各贴一份；验证通过比对 block 的 SHA 保证同步。
+17. **例外：本地代码优先**：plan.md 登记的本地仓库对应的 GitHub URL 仍按 local-first 规则（§14）走本地 Grep/Read，不经缓存。
 
 ## Plugin vs memory split
 
@@ -94,6 +103,7 @@ In any Claude Code session:
 - **0.3.0** — Batch 3: research, check-format, translate-to-english
 - **0.4.0** — `.composir/` folder for process artifacts + slug-prefixed filenames + review-cycle hardening (per-topic source whitelist, Critical=0 pass condition, snapshots + incremental review, prior-round context, stricter over-simplification bar, local-repo-first for code analysis)
 - **0.4.1** — brainstorm actively asks "run /composir:plan now?" and invokes the plan skill on confirmation, instead of ending with a passive "随时 /composir:plan" message that forces the user to type the command by hand
+- **0.5.0** — 三层 WebFetch 缓存：`bin/composir-fetch` 脚本（只缓存 2xx 响应） + 5 处 skill/agent 接入；raw page + WebFetch Q/A 累积日志；`.composir/.cache/` 系列-local，gitignore 排除
 
 ## Collections referenced in the plugin
 
