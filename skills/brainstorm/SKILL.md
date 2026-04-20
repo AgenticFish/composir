@@ -103,7 +103,22 @@ argument-hint: [optional topic hint]
 
 这一步为后面的 plan 和事实核查打基础。
 
-### 第 7 步：确定文件名 slug
+### 第 7 步：和用户确定权威源白名单
+
+**目的**：核查阶段的 fact-checker 和 academic-reviewer 需要一份"一手权威源"列表，才能判断哪些证据够硬、哪些只能作 advisory。科普文选题太多样，没有通用白名单——必须 per-topic 和用户确认一遍。
+
+用 `AskUserQuestion` 给用户推荐一份初稿，根据主题归类：
+
+- **涉及产品/工具**：官方文档域名、官方博客、官方 GitHub repo（例：Claude Code 主题 → `claude.com/en/*`、`github.com/anthropics/*`）
+- **涉及学术概念**：arxiv 论文、顶会论文（NeurIPS/ACL/ICML/CVPR/ICLR/USENIX 等）、公认教科书
+- **涉及标准协议**：RFC、W3C、ISO、IETF 等标准组织文档
+- **涉及代码分析**：已 clone 到本地的仓库路径 + 写作时基于的 commit/tag（参见第 2 步特殊情况里的代码库字段）
+
+让用户**增删**，不让用户从零列。初稿要具体（给具体域名或 URL），不要写"官方文档"这种模糊的说法。
+
+最终清单会写入 brainstorm.md 的"权威源"节，并由 `/composir:plan` 继承到 plan.md，供核查 agent 读取。
+
+### 第 8 步：确定文件名 slug
 
 在保存前，先确定用于文件命名的 slug（后续 plan.md 和 review 报告也会用它）。
 
@@ -117,9 +132,9 @@ argument-hint: [optional topic hint]
 
 用 `AskUserQuestion` 给出你推荐的 slug，让用户确认或修改。
 
-### 第 8 步：生成 brainstorm.md
+### 第 9 步：生成 brainstorm.md
 
-把讨论的所有内容整理成一个结构化 Markdown 文档，保存到 `<系列目录>/.composir/<slug>-brainstorm.md`——其中 `<slug>` 是第 7 步确定的值。**如果 `.composir/` 不存在，用 Write 工具会自动创建**（无需 mkdir）。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
+把讨论的所有内容整理成一个结构化 Markdown 文档，保存到 `<系列目录>/.composir/<slug>-brainstorm.md`——其中 `<slug>` 是第 8 步确定的值。**如果 `.composir/` 不存在，用 Write 工具会自动创建**（无需 mkdir）。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
 
 ## brainstorm.md 的结构模板
 
@@ -187,6 +202,19 @@ argument-hint: [optional topic hint]
 
 - [主题 X] 像 [生活中的 Y]，因为 [共通点]
 - ……
+
+## 权威源
+
+**fact-checker 和 academic-reviewer 在核查阶段认的一手源**。只有这些源里的证据可以升为 Critical；其他来源（个人博客、SNS、二手转述）最多支持 Warning。
+
+- [具体源 1：例 `claude.com/en/*`]
+- [具体源 2：例 `github.com/anthropics/claude-code`]
+- [具体源 3：例 某篇 arxiv 论文的 URL]
+- ...
+
+**本地代码库**（如适用，和"代码库位置"节配合）：
+- 路径：[本地 clone 路径]
+- 基于 commit/tag：[如适用]
 
 ## 待决定的问题
 
