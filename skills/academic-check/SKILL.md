@@ -1,12 +1,12 @@
 ---
-name: fact-check
-description: Run fact-checker independently on a single article — verifies factual claims (dates, names, versions, API signatures, quotes) against authoritative sources. Auto-bootstraps .composir/<slug>-plan.md if missing by reading the article and proposing an authoritative-source whitelist for user confirmation. Use when you want to verify facts without running the full review-cycle (no academic-reviewer in the loop). Iterates up to 5 rounds fixing Critical issues.
+name: academic-check
+description: Run academic-reviewer independently on a single article — audits concept explanations, analogies, and academic framing for correctness against research/literature consensus (does NOT verify raw facts — that's fact-checker's job). Auto-bootstraps .composir/<slug>-plan.md if missing by reading the article and proposing an authoritative-source whitelist for user confirmation. Use when you want to audit academic rigor without running the full review-cycle (no fact-checker in the loop). Iterates up to 5 rounds fixing Critical issues.
 argument-hint: [article file path]
 ---
 
-# Fact-Check: 单篇文章独立事实核查
+# Academic-Check: 单篇文章独立学术核查
 
-对指定文章单独跑事实核查，不触发 academic-reviewer。适合：只想验事实不要学术审、快速核一下刚改过的段落、或在还没完整 brainstorm/plan 的文章上做一次事实体检。
+对指定文章单独跑学术核查，不触发 fact-checker。适合：只想审概念框架和类比不要验具体事实、担心某个简化到"读者会被误导"的程度、或在还没完整 brainstorm/plan 的文章上做一次学术体检。
 
 参数 `$ARGUMENTS`：文章文件路径（绝对或相对）。**必须传**——单 agent 模式不像 review-cycle 会从 plan.md 推断目标文章。
 
@@ -56,7 +56,7 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
    > 已在 `<PLAN_PATH>` 生成 plan 初稿。
    >
-   > **请审阅"权威源"那一节**——fact-checker 只认白名单里的 URL / 域名作为 Critical 级别的证据。
+   > **请审阅"权威源"那一节**——academic-reviewer 只认白名单里的 URL / 域名作为 Critical 级别的证据。
    > 你可以增删域名、或跳过（空白名单时 agent 按通用黑名单兜底，但 Critical 判定会更保守）。
    >
    > 调整完告诉我"继续"。
@@ -68,7 +68,7 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 ````markdown
 # <SLUG> plan
 
-（本 plan.md 由 `/composir:fact-check` 自动生成。主要用途：让 fact-checker / academic-reviewer 拿到核查必需的"权威源"白名单。可随时手工编辑。）
+（本 plan.md 由 `/composir:academic-check` 自动生成。主要用途：让 fact-checker / academic-reviewer 拿到核查必需的"权威源"白名单。可随时手工编辑。）
 
 ## 权威源
 
@@ -101,13 +101,13 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
 ### 第 3 步：算本轮号 + 异常处理
 
-读 `## 单 agent 核查历史` 表里 `type == fact` 的行：
-- 已有 fact 行数 = `M`
+读 `## 单 agent 核查历史` 表里 `type == academic` 的行：
+- 已有 academic 行数 = `M`
 - 本轮号 `N = M + 1`
 
-如果 `M >= 1` 且最后一条 fact 行状态是 "pass"：用 `AskUserQuestion` 问 "上次已 pass，要强制再跑吗？"——否则退出。
+如果 `M >= 1` 且最后一条 academic 行状态是 "pass"：用 `AskUserQuestion` 问 "上次已 pass，要强制再跑吗？"——否则退出。
 
-如果 `N > 5`：用 `AskUserQuestion` 问 "本文已经跑了 5 轮 fact-check 还没收敛，要继续再跑 5 轮吗？"——选否则停，让用户手动处理。
+如果 `N > 5`：用 `AskUserQuestion` 问 "本文已经跑了 5 轮 academic-check 还没收敛，要继续再跑 5 轮吗？"——选否则停，让用户手动处理。
 
 **复用 review-cycle 第 9 步的异常处理**：
 - 报告解析失败 → 停下问用户，不瞎修
@@ -117,16 +117,16 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
 ### 第 4 步：本轮 snapshot + 准备 diff（iter2+）
 
-1. **Snapshot**：用 Read 读 `$ARTICLE_PATH` 当前内容，用 Write 写到 `$COMPOSIR_DIR/${SLUG}-snapshot-fact-solo-iter${N}.md`
-   - 文件名带 `-fact-solo-` 区分 review-cycle 的 `-snapshot-iter${N}.md`，互不覆盖
+1. **Snapshot**：用 Read 读 `$ARTICLE_PATH` 当前内容，用 Write 写到 `$COMPOSIR_DIR/${SLUG}-snapshot-academic-solo-iter${N}.md`
+   - 文件名带 `-academic-solo-` 区分 review-cycle 的 `-snapshot-iter${N}.md`，互不覆盖
 
 2. **Diff（仅 N >= 2）**：
-   - 上轮 snapshot 路径：`$COMPOSIR_DIR/${SLUG}-snapshot-fact-solo-iter$((N-1)).md`
-   - 上轮报告路径：`$COMPOSIR_DIR/${SLUG}-review-fact-solo-iter$((N-1)).md`
+   - 上轮 snapshot 路径：`$COMPOSIR_DIR/${SLUG}-snapshot-academic-solo-iter$((N-1)).md`
+   - 上轮报告路径：`$COMPOSIR_DIR/${SLUG}-review-academic-solo-iter$((N-1)).md`
    - Bash 跑 `diff -u <上轮 snapshot> <当前文章>`，拿 unified diff 文本
    - 如果 diff 为空 → 异常处理（见第 3 步）
 
-### 第 5 步：Dispatch fact-checker agent
+### 第 5 步：Dispatch academic-reviewer agent
 
 **生成 prompt 前**：读 plan.md 的"代码库位置"节。若有本地路径，准备代码库片段追加到 prompt 末尾（同 review-cycle 第 4 步格式）：
 
@@ -147,7 +147,7 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
 [如 plan.md 有代码库位置，追加代码库片段]
 
-这是 fact-check **单 agent 模式**——只跑你一个，没有 academic-reviewer 并行；输出格式和规则同常规。
+这是 academic-check **单 agent 模式**——只跑你一个，没有 fact-checker 并行；输出格式和规则同常规。
 
 请按你的职责产出结构化事实核查报告。
 ```
@@ -158,10 +158,10 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 审查这篇文章：<ARTICLE_PATH 绝对路径>
 参考 <PLAN_PATH 绝对路径> 里的"权威源"和"核查要点"节。
 
-**本轮是第 <N> 轮 fact-check**（单 agent 模式——没有 academic-reviewer 的上轮报告）。
+**本轮是第 <N> 轮 academic-check**（单 agent 模式——没有 fact-checker 的上轮报告）。
 
-上一轮 fact-check 报告：<$COMPOSIR_DIR/${SLUG}-review-fact-solo-iter$((N-1)).md 绝对路径>
-上一轮 fact-check snapshot：<$COMPOSIR_DIR/${SLUG}-snapshot-fact-solo-iter$((N-1)).md 绝对路径>
+上一轮 academic-check 报告：<$COMPOSIR_DIR/${SLUG}-review-academic-solo-iter$((N-1)).md 绝对路径>
+上一轮 academic-check snapshot：<$COMPOSIR_DIR/${SLUG}-snapshot-academic-solo-iter$((N-1)).md 绝对路径>
 
 本轮文章与上轮 snapshot 的 diff（unified）：
 ```
@@ -181,11 +181,11 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 请按你的职责产出结构化事实核查报告。
 ```
 
-用 Task tool 的 `fact-checker` subagent 类型 dispatch。
+用 Task tool 的 `academic-reviewer` subagent 类型 dispatch。
 
 ### 第 6 步：保存报告 + 判断通过
 
-Agent 返回 Markdown 报告。用 Write 存到 `$COMPOSIR_DIR/${SLUG}-review-fact-solo-iter${N}.md`。
+Agent 返回 Markdown 报告。用 Write 存到 `$COMPOSIR_DIR/${SLUG}-review-academic-solo-iter${N}.md`。
 
 扫报告的"总结"节：
 - **Critical = 0** → 通过，进第 7 步
@@ -196,7 +196,7 @@ Agent 返回 Markdown 报告。用 Write 存到 `$COMPOSIR_DIR/${SLUG}-review-fa
 1. 追加 `## 单 agent 核查历史` 表一行（用 Edit）：
 
    ```
-   | N | fact | YYYY-MM-DD | 0 | pass |
+   | N | academic | YYYY-MM-DD | 0 | pass |
    ```
 
 2. 把报告里的 Warning + Minor 合成一段 advisory summary 发给用户，明说："这些是 advisory，不触发自动修订——你决定要不要处理。"
@@ -215,10 +215,10 @@ Agent 返回 Markdown 报告。用 Write 存到 `$COMPOSIR_DIR/${SLUG}-review-fa
 4. 追加 `## 单 agent 核查历史` 表一行：
 
    ```
-   | N | fact | YYYY-MM-DD | K | 修 FIXED，跳 |SKIPPED| |
+   | N | academic | YYYY-MM-DD | K | 修 FIXED，跳 |SKIPPED| |
    ```
 
-5. 简短报告："第 N 轮 fact-check：K 条 Critical，修了 FIXED，跳过 |SKIPPED|（缺一手源）。进入第 N+1 轮……"
+5. 简短报告："第 N 轮 academic-check：K 条 Critical，修了 FIXED，跳过 |SKIPPED|（缺一手源）。进入第 N+1 轮……"
 6. `N++`，回到第 3 步
 
 ### 第 9 步：循环结束后的最终总结
@@ -229,7 +229,7 @@ Agent 返回 Markdown 报告。用 Write 存到 `$COMPOSIR_DIR/${SLUG}-review-fa
 - 未修的 Critical 汇总（若有 SKIPPED）
 - 最新的 advisory（Warning + Minor）
 
-## 与 review-cycle / academic-check 的关系
+## 与 review-cycle / fact-check 的关系
 
 - `/composir:review-cycle` —— fact + academic 并行，full flow；写 plan.md 的"进度追踪表"（列 `中文核查迭代`）
 - `/composir:fact-check` —— 只 fact 单边；写 plan.md 的 `## 单 agent 核查历史` 表 type=fact 行
