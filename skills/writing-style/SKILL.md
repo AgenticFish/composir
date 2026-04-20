@@ -26,7 +26,7 @@ user-invocable: false
 - 系列文章格式：`本文是"[合集名]"合集 [系列名] 系列的第N篇。`
 - 单篇文章格式：`本文是"[合集名]"合集的一篇。`（或类似自然表达）
 - **合集名由用户指定**，已有合集示例："AI之旅"、"AI群星闪耀时"、"随笔之旅"
-- 合集归属在 brainstorm 阶段决定，会记录到 brainstorm.md 和 plan.md 里
+- 合集归属在 brainstorm 阶段决定，会记录到 `.composir/brainstorm.md` 和 `.composir/plan.md` 里
 - 如果文章不属于任何合集，省略这句话
 
 ### 摘要
