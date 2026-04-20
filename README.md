@@ -147,6 +147,7 @@ rm -rf .composir/.cache/
 - `composir-fetch: permission denied` → `chmod +x ${CLAUDE_PLUGIN_ROOT}/bin/composir-fetch`
 - 所有 URL 都 exit 2 → 检查网络 / curl；若站点是 JS-heavy SPA（curl 拿不到真正内容），设计上就走第 2/3 层
 - HTTP 4xx/5xx 页不会被缓存（curl -f 拦掉，exit 2 回退到 WebFetch）
+- `composir-fetch: need shasum or sha1sum` → 系统缺 hash 工具；macOS/Linux 默认都有，极简容器里装 coreutils
 - 缓存文件被意外 commit 进 git → `.composir/.gitignore` 应含 `.cache/`，没有的话 `composir-fetch` 会自动补
 
 ### Git

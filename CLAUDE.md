@@ -58,7 +58,7 @@ Driven by a real-world case where `aizhilv/claude-code/01-context管理` hit 4 i
 
 驱动：review-cycle 多轮迭代时 fact-checker / academic-reviewer 对同一批 URL 反复 WebFetch；brainstorm 抓过的页不被下游 agent 复用——浪费 token、拖慢核查。
 
-15. **三层缓存 + 脚本契约**：`.composir/.cache/` 下建持久缓存；插件 ship `bin/composir-fetch <url>` 脚本，skills/agents 通过 Bash 调脚本而非直接 WebFetch。三层命中：(a) raw-page HTML（curl 存，只缓存 2xx）；(b) WebFetch Q/A 日志（`<hash>.wf.md` 按 URL 累积历次回答）；(c) 都 miss → WebFetch 并追加 Q/A。永不过期（系列目录天然隔离）；`.gitignore` 自举排除。
+15. **三层缓存 + 脚本契约**：`.composir/.cache/` 下建持久缓存；插件 ship `bin/composir-fetch <url>` 脚本，skills/agents 通过 Bash 调脚本而非直接 WebFetch。三层命中：(a) raw-page HTML（curl 存，只缓存 2xx）；(b) WebFetch Q/A 日志（`<hash>.wf.md` 按 URL 累积历次回答）；(c) 都 miss → WebFetch 并追加 Q/A。无自动过期（靠系列目录隔离 + 手动 `rm` 清理）；`.gitignore` 自举排除。
 16. **canonical block 在 5 个触点重复、不抽象**：Claude Code skill/agent 文件是独立上下文信封，没有 include 机制。fetch 协议只能在 5 个文件里各贴一份；验证通过比对 block 的 SHA 保证同步。
 17. **例外：本地代码优先**：plan.md 登记的本地仓库对应的 GitHub URL 仍按 local-first 规则（§14）走本地 Grep/Read，不经缓存。
 
