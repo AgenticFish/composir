@@ -142,6 +142,8 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 **iter1 prompt**（N == 1）：
 
 ```
+**CWD 必做**：先执行 `cd "<SERIES_DIR 绝对路径>"`，再跑任何 Bash（含 composir-fetch）。否则 `.composir/.cache/` 会写到错误目录，缓存永远命不中。
+
 审查这篇文章：<ARTICLE_PATH 绝对路径>
 参考 <PLAN_PATH 绝对路径> 里的"权威源"和"核查要点"节，特别关注那些点。
 
@@ -155,6 +157,8 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 **iter2+ prompt**（N >= 2）：
 
 ```
+**CWD 必做**：先执行 `cd "<SERIES_DIR 绝对路径>"`，再跑任何 Bash（含 composir-fetch）。否则 `.composir/.cache/` 会写到错误目录，缓存永远命不中。
+
 审查这篇文章：<ARTICLE_PATH 绝对路径>
 参考 <PLAN_PATH 绝对路径> 里的"权威源"和"核查要点"节。
 
