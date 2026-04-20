@@ -42,9 +42,14 @@ model: inherit
 
 - 逐段扫描文章，列出所有可核查的具体断言
 - 对每条断言：
-  - 用 WebSearch 搜索最新信息（搜索时加入准确时间限定词，避免过期信息）
-  - 用 WebFetch 读取权威来源（官方文档、一手论文、官方博客）——优先一手源，避免二手转述
-  - 如果是代码/命令/API 相关，用 Grep / Glob / Read 去 plan.md 里记录的代码库本地路径验证（若有）
+  - **涉及目标代码库的断言（代码/命令/API/配置/行为）**：
+    - 如果 plan.md 的"代码库位置"或"权威源"节列了**本地路径**，**必须**用 Grep / Glob / Read 本地验证
+    - **禁止**对同一个仓库用 WebFetch（抓 github.com 页面）或 WebSearch（找二手博客）—— 本地代码才是权威一手源，远程抓既浪费 token 也不完整
+    - 如果 plan.md 记了 commit/tag，尽量在那个版本验证：若 `git -C <path> rev-parse HEAD` 和记录的不一致，在报告里标一句"基于当前 checkout 版本核查（与 plan.md 记录的 <tag/hash> 不同）"
+    - 例外：PR 评论、Issue 讨论、Release Notes 这类**代码之外**的内容，可以用 WebFetch 查 GitHub 对应页面
+  - **其他断言**（非目标仓库相关）：
+    - 用 WebSearch 搜索最新信息（搜索时加入准确时间限定词，避免过期信息）
+    - 用 WebFetch 读取权威来源（官方文档、一手论文、官方博客）——优先一手源，避免二手转述
 
 ### 4b. iter2+（增量核查）
 

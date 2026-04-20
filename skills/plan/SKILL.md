@@ -33,7 +33,7 @@ argument-hint: [optional path to brainstorm.md]
 - [ ] 如果是系列：系列名、篇数、逻辑线、每篇初步主题
 - [ ] 关键概念和需要核查的事实
 - [ ] **权威源**列表（brainstorm 第 7 步产出的）
-- [ ] 如果涉及代码分析：代码库的本地路径（不能只有 GitHub URL）
+- [ ] 如果涉及代码分析：代码库的本地路径（不能只有 GitHub URL）+ 基于的 commit/tag（供核查时定位版本）
 
 **如果有缺失**，用 `AskUserQuestion` 补齐——不要自己脑补。**权威源如果 brainstorm.md 里没写，一定要补一份**（核查阶段需要），可以按主题推断一份初稿让用户确认。
 
@@ -93,7 +93,8 @@ argument-hint: [optional path to brainstorm.md]
 ## 代码库位置（如果主题涉及代码分析）
 
 - **GitHub URL**：...
-- **本地路径**：...（写作阶段直接从这里读代码，不要用 WebFetch 去抓 GitHub）
+- **本地路径**：...（写作阶段直接从这里读代码；核查阶段两个 agent 也会从这里读，禁止用 WebFetch 去抓 GitHub）
+- **基于 commit/tag**：...（写作时讨论的是哪个版本；核查员会尝试在这个版本上验证）
 
 如果主题不涉及代码分析，删除这一节。
 
