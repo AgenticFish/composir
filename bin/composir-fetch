@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# composir-fetch <url>
+# composir-fetch --wf-path <url>
+#
+# stdout: cached file path (on success)
+# exit:   0 = ok (hit or fresh fetch, or --wf-path computed)
+#         2 = miss + fetch failed or content unusable (caller should fall back)
+#         1 = hard error (bad args, permission, missing deps)
+
+set -euo pipefail
+
+CACHE_DIR=".composir/.cache"
+
+compute_paths() {
+  local url="$1"
+  local hash_cmd
+  hash_cmd=$(command -v shasum || command -v sha1sum || true)
+  [ -n "$hash_cmd" ] || { echo "composir-fetch: need shasum or sha1sum" >&2; exit 1; }
+
+  HASH=$(printf '%s' "$url" | "$hash_cmd" | cut -c1-12)
+  HINT=$(printf '%s' "$url" \
+    | sed -E 's#^https?://##; s#[?#].*$##; s#/+$##; s#[^A-Za-z0-9._-]#-#g' \
+    | cut -c1-60)
+  RAW_FILE="${CACHE_DIR}/${HASH}-${HINT}.html"
+  WF_FILE="${CACHE_DIR}/${HASH}-${HINT}.wf.md"
+}
+
+ensure_dir_and_gitignore() {
+  mkdir -p "$CACHE_DIR"
+  local gi=".composir/.gitignore"
+  if [ ! -f "$gi" ] || ! grep -qxF '.cache/' "$gi" 2>/dev/null; then
+    printf '.cache/\n' >> "$gi"
+  fi
+}
+
+# --- arg parsing ---
+if [ $# -eq 2 ] && [ "$1" = "--wf-path" ]; then
+  compute_paths "$2"
+  ensure_dir_and_gitignore
+  printf '%s\n' "$WF_FILE"
+  exit 0
+fi
+
+if [ $# -ne 1 ]; then
+  echo "usage: composir-fetch <url>" >&2
+  echo "       composir-fetch --wf-path <url>" >&2
+  exit 1
+fi
+
+URL="$1"
+compute_paths "$URL"
+ensure_dir_and_gitignore
+
+# --- cache hit ---
+if [ -s "$RAW_FILE" ]; then
+  printf '%s\n' "$RAW_FILE"
+  exit 0
+fi
+
+# --- cache miss: curl ---
+TMP="${RAW_FILE}.tmp.$$"
+if ! curl -sSL --max-time 30 \
+     -A "Mozilla/5.0 (composir-fetch)" \
+     -o "$TMP" "$URL"; then
+  rm -f "$TMP"
+  exit 2
+fi
+
+# JS-heavy / empty-shell heuristic: tiny body = likely SPA skeleton
+SIZE=$(wc -c < "$TMP" | tr -d ' ')
+if [ "$SIZE" -lt 2048 ]; then
+  rm -f "$TMP"
+  exit 2
+fi
+
+mv "$TMP" "$RAW_FILE"
+printf '%s\n' "$RAW_FILE"
+exit 0
