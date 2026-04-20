@@ -18,11 +18,11 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 #### `/brainstorm`
 
-驱动一次交互式头脑风暴，和你讨论：写什么、单篇 or 系列、系列结构、关键概念、类比等。产出 `brainstorm.md`。如果主题涉及分析某代码库，会要求你把仓库 clone 到本地。
+驱动一次交互式头脑风暴，和你讨论：写什么、单篇 or 系列、系列结构、关键概念、类比等。产出 `.composir/brainstorm.md`。如果主题涉及分析某代码库，会要求你把仓库 clone 到本地。
 
 #### `/plan`
 
-读取 brainstorm.md，产出结构化的 `plan.md`——包含每篇文章的详细规划、关键术语、核查要点、进度追踪表。
+读取 `.composir/brainstorm.md`，产出结构化的 `.composir/plan.md`——包含每篇文章的详细规划、关键术语、核查要点、进度追踪表。
 
 #### 背景 Skill：`writing-style`
 
@@ -60,18 +60,34 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 ```
 /brainstorm                    ← 主题、读者、形式、结构
-   ↓ brainstorm.md
+   ↓ .composir/brainstorm.md
 /plan                          ← 结构化 plan
-   ↓ plan.md（用户审核）
+   ↓ .composir/plan.md（用户审核）
 [写作，中途可随时 /research <term> 查资料]
-   ↓ 中文草稿
+   ↓ 中文草稿（放在系列根目录）
 /review-cycle article.md       ← 自动 fact + academic 核查 + 修订循环
-   ↓ 通过后 plan.md 标为"定稿"
+   ↓ 通过后 .composir/plan.md 标为"定稿"
 /check-format article.md       ← 发布前机械格式检查
    ↓ 用户说"写英文"
 /translate-to-english article.md
    ↓ 英文草稿（含自动 check-format）
 /review-cycle english.md       ← 可选：英文也跑一遍核查
+```
+
+### 文件布局
+
+每个文章系列目录长这样：
+
+```
+<系列目录>/
+├── 01-xxx.md                          ← 文章本体
+├── 02-yyy.md
+├── 01-xxx-english.md
+└── .composir/                         ← 写作过程元信息（默认隐藏）
+    ├── brainstorm.md
+    ├── plan.md
+    ├── review-fact-01-xxx-iter1.md
+    └── review-academic-01-xxx-iter1.md
 ```
 
 ## License

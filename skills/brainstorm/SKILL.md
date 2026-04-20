@@ -14,16 +14,18 @@ argument-hint: [optional topic hint]
 
 ### 第 1 步：确认保存目录
 
-**一开始就问用户**要把 brainstorm.md 保存到哪里。这一步不能省略。
+**一开始就问用户**文章系列要放到哪个目录。brainstorm.md 会写到该目录下的 `.composir/` 子文件夹里（和后面的 plan.md、review 报告一起）——文章本身仍放在系列根目录。这一步不能省略。
 
 用 `AskUserQuestion` 询问，给几个合理的候选：
-- 当前工作目录（cwd）
-- cwd 下新建一个主题子目录（比如 `cwd/<topic-slug>/`）
+- 当前工作目录（cwd） → brainstorm.md 写到 `cwd/.composir/brainstorm.md`
+- cwd 下新建一个主题子目录（比如 `cwd/<topic-slug>/`） → brainstorm.md 写到 `cwd/<topic-slug>/.composir/brainstorm.md`
 - 其他路径
 
-如果用户一开始就在 prompt 里说了路径，跳过这一步。
+如果用户一开始就在 prompt 里说了路径，跳过这一步（仍按 `<path>/.composir/brainstorm.md` 组织）。
 
-**提醒规则**：如果用户在整个 brainstorm 过程中没提保存位置、也没回答这个问题，**主动提醒用户**："我们需要决定 brainstorm 保存到哪里，否则后面 plan 和文章也不知道放哪。"
+**提醒规则**：如果用户在整个 brainstorm 过程中没提保存位置、也没回答这个问题，**主动提醒用户**："我们需要决定文章系列放到哪里，否则 brainstorm、plan、文章也不知道放哪。"
+
+**.composir/ 文件夹的用途**：存放写作过程的元信息（brainstorm.md、plan.md、review 报告等）。文章本身写在系列根目录（`.composir/` 的上一级），避免把元信息和正文混在一起。
 
 ### 第 2 步：讨论主题和定位
 
@@ -101,7 +103,7 @@ argument-hint: [optional topic hint]
 
 ### 第 7 步：生成 brainstorm.md
 
-把讨论的所有内容整理成一个结构化 Markdown 文档，保存到第 1 步确认的目录。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
+把讨论的所有内容整理成一个结构化 Markdown 文档，保存到第 1 步确认的系列根目录下的 `.composir/` 子文件夹——最终路径为 `<系列目录>/.composir/brainstorm.md`。**如果 `.composir/` 不存在，用 Write 工具会自动创建**（无需 mkdir）。**使用你读到这份文档时的时间做日期记录**（比如用 Bash `date` 命令，或者从环境信息里推断）。
 
 ## brainstorm.md 的结构模板
 
@@ -182,7 +184,7 @@ argument-hint: [optional topic hint]
 
 ## 重要约定
 
-- **一开始就问保存路径**，别等到结束才问
+- **一开始就问保存路径**（指系列根目录），别等到结束才问——brainstorm.md 最终落在 `<系列目录>/.composir/brainstorm.md`
 - **不要自己决定写什么**——让用户拍板，你只是驱动讨论
 - **一次问一两个问题**，不要一股脑丢一堆给用户
 - **每个选择都记录下来**，文档是用户未来决策的依据
