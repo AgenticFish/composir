@@ -149,7 +149,7 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
 这是 academic-check **单 agent 模式**——只跑你一个，没有 fact-checker 并行；输出格式和规则同常规。
 
-请按你的职责产出结构化事实核查报告。
+请按你的职责产出结构化学术核查报告。
 ```
 
 **iter2+ prompt**（N >= 2）：
@@ -170,7 +170,7 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
 **核查指引**（iter2+）：
 
-1. 重点审查本轮 diff 涉及的段落是否引入新事实问题
+1. 重点审查本轮 diff 涉及的段落是否引入新的概念 / 类比 / 学术框架问题
 2. 对上一轮报告里标出的 Critical，确认是否已修复（修复了就不用重报；没修或改错了才重报）
 3. 未动过的段落默认延续上轮判定——除非本轮改动让其他段落的既有断言失真（跨引用才看），否则不要主动重新扫
 4. 不要推翻上一轮的判断——若认为上轮某条 Critical 判错了，在报告里单独加一节 "## 对上轮判定的异议"
@@ -178,7 +178,7 @@ PLAN_PATH="$COMPOSIR_DIR/${SLUG}-plan.md"
 
 [如 plan.md 有代码库位置，追加代码库片段]
 
-请按你的职责产出结构化事实核查报告。
+请按你的职责产出结构化学术核查报告。
 ```
 
 用 Task tool 的 `academic-reviewer` subagent 类型 dispatch。
@@ -201,7 +201,7 @@ Agent 返回 Markdown 报告。用 Write 存到 `$COMPOSIR_DIR/${SLUG}-review-ac
 
 2. 把报告里的 Warning + Minor 合成一段 advisory summary 发给用户，明说："这些是 advisory，不触发自动修订——你决定要不要处理。"
 
-3. 告诉用户："Fact-check 通过，共 N 轮。报告路径列表：…"
+3. 告诉用户："Academic-check 通过，共 N 轮。报告路径列表：…"
 
 ### 第 8 步：不通过 → 自动修订
 
