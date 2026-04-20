@@ -20,6 +20,7 @@ Three MVP batches + one polish/hardening round, each a minor version bump:
 | 3 — Writing tools | 0.3.0 | `research`, `check-format`, `translate-to-english` |
 | 4 — Polish & hardening | 0.4.0 | `.composir/` folder + slug-prefixed filenames + review-cycle hardening (no new skills/agents; behavior & structure changes only) |
 | 5 — Webfetch cache | 0.5.0 | `bin/composir-fetch` + 5 处 skill/agent 接入三层缓存（behavior change, no new skills/agents） |
+| 6 — Single-agent checks | 0.5.1 | `fact-check`, `academic-check` skills + bootstrap-on-missing-plan routine |
 
 File layout:
 - `.claude-plugin/plugin.json` — plugin manifest (name, version)
@@ -61,6 +62,14 @@ Driven by a real-world case where `aizhilv/claude-code/01-context管理` hit 4 i
 15. **三层缓存 + 脚本契约**：`.composir/.cache/` 下建持久缓存；插件 ship `bin/composir-fetch <url>` 脚本，skills/agents 通过 Bash 调脚本而非直接 WebFetch。三层命中：(a) raw-page HTML（curl 存，只缓存 2xx）；(b) WebFetch Q/A 日志（`<hash>.wf.md` 按 URL 累积历次回答）；(c) 都 miss → WebFetch 并追加 Q/A。无自动过期（靠系列目录隔离 + 手动 `rm` 清理）；`.gitignore` 自举排除。
 16. **canonical block 在 5 个触点重复、不抽象**：Claude Code skill/agent 文件是独立上下文信封，没有 include 机制。fetch 协议只能在 5 个文件里各贴一份；验证通过比对 block 的 SHA 保证同步。
 17. **例外：本地代码优先**：plan.md 登记的本地仓库对应的 GitHub URL 仍按 local-first 规则（§14）走本地 Grep/Read，不经缓存。
+
+### 单 agent 核查 + bootstrap (2026-04-20, 0.5.1)
+
+驱动：偶尔想对一篇文章只验事实或只审概念，不需要 full review-cycle；或者对没走过 brainstorm→plan 的老文章做事后体检。review-cycle 要求 plan.md 存在，且 fact + academic 并行跑。
+
+18. **两个独立 skill `fact-check` / `academic-check`**：各调一个 agent（fact-checker / academic-reviewer），共享 bootstrap 流程；skill 之间不互相依赖。plan.md 里加一张独立的 `## 单 agent 核查历史` 表，与 review-cycle 的"进度追踪表"正交，两边互不读写对方的计数器。
+19. **bootstrap：缺 plan.md 时 读文章 + 推断权威源白名单 + 用户确认一轮**：保证 0.4.0 条款 8 的 per-topic 白名单依然生效。不允许"裸跑无 plan.md"——否则 agent 回到靠通用黑名单兜底的老状态。bootstrap 后的 plan.md 是持久产物，下次复用（含 review-cycle 也能用）。
+20. **文件名 `-*-solo-` 中缀**：单 agent 的 snapshot / report 用 `-fact-solo-iter<N>.md` / `-academic-solo-iter<N>.md`，跟 review-cycle 的 `-snapshot-iter<N>.md` / `-review-fact-iter<N>.md` 彻底正交，三条序列独立计数不冲突。
 
 ## Plugin vs memory split
 
@@ -104,6 +113,7 @@ In any Claude Code session:
 - **0.4.0** — `.composir/` folder for process artifacts + slug-prefixed filenames + review-cycle hardening (per-topic source whitelist, Critical=0 pass condition, snapshots + incremental review, prior-round context, stricter over-simplification bar, local-repo-first for code analysis)
 - **0.4.1** — brainstorm actively asks "run /composir:plan now?" and invokes the plan skill on confirmation, instead of ending with a passive "随时 /composir:plan" message that forces the user to type the command by hand
 - **0.5.0** — 三层 WebFetch 缓存：`bin/composir-fetch` 脚本（只缓存 2xx 响应） + 5 处 skill/agent 接入；raw page + WebFetch Q/A 累积日志；`.composir/.cache/` 系列-local，gitignore 排除
+- **0.5.1** — 单篇文章独立核查：`/composir:fact-check` + `/composir:academic-check` 两个 skill，自动 bootstrap 缺失的 plan.md（读文章推断权威源候选，用户确认后写最小 plan），独立 `## 单 agent 核查历史` 进度表跟 review-cycle 正交
 
 ## Collections referenced in the plugin
 
