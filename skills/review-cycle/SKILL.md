@@ -1,12 +1,12 @@
 ---
 name: review-cycle
-description: Orchestrate fact-check + academic-review + revision loop for a popular-science article. Spawns fact-checker and academic-reviewer agents in parallel to review a drafted article, collects their reports, applies fixes when issues are found, and re-reviews — up to 5 iterations. If still failing after 5, asks user whether to continue. Updates plan.md's progress table with iteration count.
+description: Orchestrate fact-check + optional academic-review + revision loop for a popular-science article. Asks user whether to include academic review, then spawns agents accordingly. Collects reports, applies fixes when issues are found, and re-reviews — up to 5 iterations. If still failing after 5, asks user whether to continue. Updates plan.md's progress table with iteration count.
 argument-hint: [article file path]
 ---
 
 # Review Cycle: 事实核查 + 学术核查 + 修订循环
 
-对一篇已经写好草稿的科普文章执行完整的核查循环：fact-checker 和 academic-reviewer 两个子 agent 并行审查，发现问题自动修订，再次核查，最多迭代 5 次。
+对一篇已经写好草稿的科普文章执行核查循环。开始前询问用户是否需要学术核查——如果需要，fact-checker 和 academic-reviewer 两个子 agent 并行审查；如果不需要，只跑 fact-checker。发现问题自动修订，再次核查，最多迭代 5 次。
 
 参数 `$ARGUMENTS`：文章文件路径。如果省略，自动从当前目录的 `.composir/*-plan.md` 里找"状态"是"核查中"或"写作中已完成"的那一篇。
 
@@ -31,6 +31,17 @@ argument-hint: [article file path]
 
 plan.md 用于后面更新进度和读"核查要点"。
 
+### 第 1.5 步：确认核查范围
+
+用 `AskUserQuestion` 问用户：
+
+> 本轮核查需要学术核查（academic-reviewer）吗？
+
+- 选 A：**事实核查 + 学术核查**（两个 agent 并行，默认推荐）
+- 选 B：**仅事实核查**（跳过 academic-reviewer）
+
+把用户的选择记为 `SKIP_ACADEMIC`（选 B 时为 true）。后续步骤据此决定是否触发 academic-reviewer。
+
 ### 第 2 步：读当前迭代计数
 
 从第 1 步定位到的 `.composir/<plan-slug>-plan.md` 的进度追踪表里找这篇文章的"中文核查迭代"列，当前值记为 `N`（如 "2 / 5" 则 N=2）。
@@ -54,7 +65,7 @@ plan.md 用于后面更新进度和读"核查要点"。
    - 这份快照代表"本轮 agent 看到的文章状态"，供下一轮 diff 用
 
 2. **准备 diff 和上轮报告**（仅 iter2+，即 N >= 1）：
-   - **上一轮两份报告的绝对路径**：`.composir/<article-slug>-review-fact-iter<N>.md` 和 `.composir/<article-slug>-review-academic-iter<N>.md`
+   - **上一轮报告的绝对路径**：`.composir/<article-slug>-review-fact-iter<N>.md`；如果 `SKIP_ACADEMIC` 为 false，还包括 `.composir/<article-slug>-review-academic-iter<N>.md`
    - **上一轮快照绝对路径**：`.composir/<article-slug>-snapshot-iter<N>.md`
    - **本轮 diff**：用 Bash 跑
      ```
@@ -63,9 +74,10 @@ plan.md 用于后面更新进度和读"核查要点"。
      拿到 unified diff 文本。这代表"上一轮到本轮之间的改动"（通常是上轮自动修订 + 用户手工改动）
    - **如果 diff 为空**（用户中途没改、自动修订也没效果）：停下来问用户，"上一轮之后没有任何改动，是否跳过本轮？"——不要盲目再跑一遍 agent
 
-### 第 4 步：并行触发两个核查 agent
+### 第 4 步：触发核查 agent
 
-**并行**触发 fact-checker 和 academic-reviewer——它们读同一篇文章但关注点不同，不互相依赖。用单次消息里的两个 Agent 工具调用同时发起。
+- **如果 `SKIP_ACADEMIC` 为 false**：**并行**触发 fact-checker 和 academic-reviewer——它们读同一篇文章但关注点不同，不互相依赖。用单次消息里的两个 Agent 工具调用同时发起。
+- **如果 `SKIP_ACADEMIC` 为 true**：只触发 fact-checker，不 spawn academic-reviewer。
 
 prompt 分两档。
 
@@ -104,9 +116,9 @@ prompt 分两档。
 
 **本轮是第 <N+1> 轮核查**。
 
-上一轮两份报告：
+上一轮报告：
 - <绝对路径到 <article-slug>-review-fact-iter<N>.md>
-- <绝对路径到 <article-slug>-review-academic-iter<N>.md>
+- <绝对路径到 <article-slug>-review-academic-iter<N>.md>（仅 SKIP_ACADEMIC 为 false 时包含此行）
 
 上一轮快照：<绝对路径到 <article-slug>-snapshot-iter<N>.md>
 
@@ -130,20 +142,20 @@ prompt 分两档。
 
 **注意**：给 agent 传的都是绝对路径（文章、plan.md、上轮报告、上轮快照）。
 
-### 第 5 步：收集两份报告
+### 第 5 步：收集报告
 
-两个 agent 完成后，它们会返回各自的 Markdown 报告。把两份报告**保存到文章所在目录的 `.composir/`** 下（和 plan.md 同级），文件名以**文章 slug** 为前缀：
+agent 完成后，把报告**保存到文章所在目录的 `.composir/`** 下（和 plan.md 同级），文件名以**文章 slug** 为前缀：
 
-- `<文章目录>/.composir/<article-slug>-review-fact-iter<N+1>.md`
-- `<文章目录>/.composir/<article-slug>-review-academic-iter<N+1>.md`
+- `<文章目录>/.composir/<article-slug>-review-fact-iter<N+1>.md`（始终有）
+- `<文章目录>/.composir/<article-slug>-review-academic-iter<N+1>.md`（仅 `SKIP_ACADEMIC` 为 false 时有）
 
 `<article-slug>` 就是文章文件去掉 `.md` 后的名字（例：文章是 `01-inside-android-skills.md`，则 slug 是 `01-inside-android-skills`）。保留历史报告，方便用户回看。
 
 ### 第 6 步：判断是否通过
 
-扫描两份报告的"总结"部分：
+扫描报告的"总结"部分：
 
-- **通过**（不再触发下一轮）：**两份报告都没有 Critical**（Warning 和 Minor 都不阻塞通过）
+- **通过**（不再触发下一轮）：**所有报告都没有 Critical**（Warning 和 Minor 都不阻塞通过）
 - **不通过**：任意一份有 Critical
 
 **为什么 Warning 不再阻塞**：Warning 通常是"可以更精确"类 nuance，由作者判断是否处理；若强制迭代处理容易陷入"每轮 agent 找新的 nuance"的循环。经验显示，严格 Critical=0 + 权威源白名单已经足够把真错误拦下。
@@ -151,12 +163,12 @@ prompt 分两档。
 ### 第 7 步：如果通过
 
 1. 更新 plan.md：把这篇文章的"中文状态"从"核查中"改为"定稿"，迭代列填 `N+1 / 5`
-2. 把两份报告的 **Warning + Minor** 合成一份 advisory summary 发给用户，明确说："以下是 advisory 问题，不触发自动修订——由你决定是否处理。"
+2. 把报告的 **Warning + Minor** 合成一份 advisory summary 发给用户，明确说："以下是 advisory 问题，不触发自动修订——由你决定是否处理。"
 3. 告诉用户："本篇核查通过。要不要开始写英文版？（回复'写英文'开始，或'先不写'跳过）"——**不要自动触发英文**
 
 ### 第 8 步：如果不通过，自动修订
 
-1. 读取两份报告里所有 **Critical** 条目（**不处理 Warning**，Warning 交给用户）
+1. 读取报告里所有 **Critical** 条目（**不处理 Warning**，Warning 交给用户）
 2. 对文章逐条应用 Critical 的修改：
    - 对每条 Critical，定位原文位置，用 Edit 工具改
    - 按报告里的"建议修改"执行；如果建议不清楚或有歧义，**保守修改**（倾向于加限定词、而非彻底改写）
@@ -198,7 +210,7 @@ prompt 分两档。
 
 ## 实用约定
 
-- **两份报告始终保留**——即使通过了也不删，用户可能事后要看
+- **报告始终保留**——即使通过了也不删，用户可能事后要看
 - **自动修订要保守**——拿不准的改动宁可不改、让用户自己处理
 - **每轮都更新 plan.md**——即使用户中途打断，下次继续也能知道到哪了
 - **报告文件名带迭代号**——`<article-slug>-review-fact-iter1.md`、`<article-slug>-review-fact-iter2.md` ……方便对比看每轮的差异；全部存在 `.composir/` 下，不和文章混放
