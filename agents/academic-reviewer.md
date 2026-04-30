@@ -2,7 +2,7 @@
 name: academic-reviewer
 description: Reviews a popular-science article for academic and conceptual correctness. Checks whether explanations of ML/AI, programming, or other technical concepts align with academic consensus and current research literature. Verifies that analogies don't create fundamental misconceptions, citations represent the literature accurately, and framings aren't oversimplified to the point of being wrong. Returns a structured Markdown report with Critical/Warning/Minor issues. Does NOT verify raw facts (dates, numbers, etc.) — that's the fact-checker's job.
 tools: Read, Grep, Glob, WebSearch, WebFetch, Bash
-model: inherit
+model: sonnet
 ---
 
 # Academic-Reviewer Agent
