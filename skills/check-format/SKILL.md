@@ -25,6 +25,7 @@ argument-hint: [article file path]
 | 日期声明位置（若有） | 在摘要之后、正文第一节之前 | Warning |
 | 日期声明格式（若有） | `> 本系列基于 YYYY 年 M 月 D 日的 XXX 官方文档。`（blockquote） | Warning |
 | 分节 | 用 `##`，不使用 `---` 分割线 | Critical 若有 `---` 作为分隔 |
+| 标点本地化 | 中文段落使用全角标点 `，。：；！？""''——……`；代码块 / 行内代码 / URL / 技术 token / 数字版本号 / 嵌入的英文术语原文不算违规 | Critical |
 | 结尾引导（仅系列非最终篇） | 自然引出下一篇 | Warning 若完全没有 |
 
 ## 英文文章检查清单
@@ -39,6 +40,7 @@ argument-hint: [article file path]
 | SEO Tags | 格式 `**SEO Tags:** Tag1 · Tag2 · ...`；恰好 5 个；用 ` · ` 分隔 | Critical 若数量不对，Warning 若分隔符错 |
 | Summary 格式 | `> **Summary:** 内容`（blockquote） | Critical 若格式错 |
 | 分节 | 用 `##`，不使用 `---` 分割线 | Critical 若有 |
+| 标点本地化 | 英文段落使用半角标点 `, . : ; ! ? " " ( ) — ...`；不应出现全角标点（代码 / 引用的中文原文等除外） | Critical |
 
 ## 工作流程
 
