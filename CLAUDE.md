@@ -115,6 +115,7 @@ In any Claude Code session:
 - **0.5.0** — 三层 WebFetch 缓存：`bin/composir-fetch` 脚本（只缓存 2xx 响应） + 5 处 skill/agent 接入；raw page + WebFetch Q/A 累积日志；`.composir/.cache/` 系列-local，gitignore 排除
 - **0.5.1** — 单篇文章独立核查：`/composir:fact-check` + `/composir:academic-check` 两个 skill，自动 bootstrap 缺失的 plan.md（读文章推断权威源候选，用户确认后写最小 plan），独立 `## 单 agent 核查历史` 进度表跟 review-cycle 正交
 - **0.5.2** — fix：fact-check / academic-check / review-cycle 生成给核查 agent 的 prompt 里加 "**CWD 必做**" 指令，强制 agent 先 `cd "<系列目录>"` 再跑任何 Bash。修掉 0.5.1 e2e 发现的 bug：用户 CWD 不在系列目录时，composir-fetch 把缓存写到错目录，agent 读不到
+- **0.5.3** — review-cycle 在 spawn agent 前问用户"是否包含 academic review"；选 No 时只跑 fact-checker，后续报告收集、通过条件、自动修订、iter2+ prompt 都自适应单 agent 模式。适合事实密集但概念面较窄的稿件，省一倍 agent 时间
 - **0.5.4** — fact-checker 和 academic-reviewer agent 模型从 `inherit` 改为 `sonnet`：核查任务结构化程度高，Sonnet 足够且更快更省
 - **0.5.5** — writing-style 加入"标点必须匹配文章语言"规则（中文用全角、英文用半角；代码块 / URL / 技术 token / 数字版本号 / 嵌入的英文术语原文除外）；check-format 中/英检查清单各增加一行 Critical 级标点本地化检查
 

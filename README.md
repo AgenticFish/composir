@@ -34,6 +34,8 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 对写好的草稿执行完整核查循环：fact-checker 和 academic-reviewer 两个 agent **并行**审查，发现 Critical 自动修订，再次核查——最多 5 轮。
 
+0.5.3 起，开始前会问你"是否包含 academic review"：稿件偏事实密集（如 changelog 解读、API 对比）时可以跳过，只跑 fact-checker 提速；下游所有步骤会自适应单 agent 模式。
+
 几个关键设计：
 
 - **通过条件**：**Critical = 0 即通过**；Warning 降级为 advisory（合到报告里发给你参考，不触发下一轮），避免循环死磕"可以更精确"类 nuance
@@ -68,7 +70,7 @@ Claude Code plugin for the popular-science writing workflow: brainstorm → plan
 
 #### `/check-format [article-path]`
 
-机械的格式合规检查——字符数（摘要 100-120、英文 Title < 100、Subtitle < 140、SEO Description < 150）、Tags 数量、系列前缀、系列声明等。用 Python 精确计数，不目测。
+机械的格式合规检查——字符数（摘要 100-120、英文 Title < 100、Subtitle < 140、SEO Description < 150）、Tags 数量、系列前缀、系列声明等。用 Python 精确计数，不目测。0.5.5 起额外校验**标点本地化**：中文段不能出现半角 `, . ! ? :`，英文段不能出现全角 `，。！？：`（代码块 / URL / 技术 token / 数字版本号 / 嵌入的英文术语原文除外）。
 
 #### `/translate-to-english [Chinese-article-path]`
 
