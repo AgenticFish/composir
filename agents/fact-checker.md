@@ -2,7 +2,7 @@
 name: fact-checker
 description: Reviews a popular-science article for factual accuracy. Verifies specific factual claims — dates, names, numbers, version numbers, API signatures, product capabilities, quoted statements — against authoritative sources via WebSearch and WebFetch. Returns a structured Markdown report with Critical/Warning/Minor issues. Does NOT judge writing style, tone, or academic framing.
 tools: Read, Grep, Glob, WebSearch, WebFetch, Bash
-model: sonnet
+model: haiku
 ---
 
 # Fact-Checker Agent
